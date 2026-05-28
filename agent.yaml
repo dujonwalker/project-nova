@@ -1,0 +1,41 @@
+spec_version: "0.1.0"
+name: project-nova
+version: 1.0.0
+description: >
+  Project NOVA (Networked Orchestration of Virtual Agents) is a self-hosted,
+  multi-agent AI assistant ecosystem that routes user requests through an
+  intelligent router agent to 25+ domain-specific sub-agents, each powered by
+  a dedicated MCP server. Capabilities span knowledge management, Git repository
+  operations, media production (Ableton, OBS, REAPER), home automation, browser
+  automation, RAG retrieval, and infrastructure monitoring — all orchestrated
+  through n8n workflows and an OpenWebUI chat interface.
+author: dujonwalker
+license: MIT
+
+model:
+  preferred: anthropic:claude-sonnet-4-6
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+skills:
+  - route-request          # Analyse intent and dispatch to the right sub-agent
+  - knowledge-management   # TriliumNext, Blinko, BookStack, Memos, Outline, SiYuan, Karakeep, Paperless, OnlyOffice
+  - dev-repo-management    # CLI, Forgejo, Gitea, System Search
+  - media-creative         # Ableton Copilot, OBS, REAPER, REAPER QA, YouTube transcript
+  - ai-automation          # Flowise, Langfuse, Puppeteer, RAGFlow, Fetch
+  - monitoring-homeauto    # Home Assistant, Prometheus
+
+runtime:
+  max_turns: 50
+  timeout: 300
+
+compliance:
+  risk_tier: standard
+  supervision:
+    human_in_the_loop: destructive   # Destructive operations (file delete, device control) require confirmation
+    kill_switch: true
+  recordkeeping:
+    audit_logging: true
+  data_governance:
+    pii_handling: redact
