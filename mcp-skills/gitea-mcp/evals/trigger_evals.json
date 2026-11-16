@@ -1,0 +1,50 @@
+[
+  {
+    "query": "list all my repositories on Gitea and check open issues in the self-hosted environment-apps repo",
+    "should_trigger": true
+  },
+  {
+    "query": "create a new branch feature/auth and update config.yaml in my Gitea repo",
+    "should_trigger": true
+  },
+  {
+    "query": "trigger the deploy workflow in Gitea Actions and check the latest run logs",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I set up gitea-mcp in VS Code with our self-signed Gitea server?",
+    "should_trigger": true
+  },
+  {
+    "query": "why is gitea-mcp capping my per_page=100 tool call to 50 items?",
+    "should_trigger": true
+  },
+  {
+    "query": "our nginx reverse proxy is breaking gitea-mcp OAuth /mcp requests, what headers do we need?",
+    "should_trigger": true
+  },
+  {
+    "query": "help me push this local git branch to our gitea remote with GIT_SSL_NO_VERIFY=true",
+    "should_trigger": false
+  },
+  {
+    "query": "why is git push failing with an SSL certificate error on my self-signed Gitea remote?",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I configure the GitHub MCP server in Cursor?",
+    "should_trigger": false
+  },
+  {
+    "query": "write a Gitea Actions workflow YAML to build and push a Docker image",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I set up Forgejo Actions CI runners?",
+    "should_trigger": false
+  },
+  {
+    "query": "can you check if my Gitea container is running with docker ps?",
+    "should_trigger": false
+  }
+]

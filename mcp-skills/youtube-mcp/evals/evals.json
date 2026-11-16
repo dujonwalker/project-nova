@@ -1,0 +1,38 @@
+{
+  "skill_name": "youtube-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Get the details and English transcript for https://www.youtube.com/watch?v=dQw4w9WgXcQ and summarize the main points.",
+      "expected_output": "Extracts the raw 11-character videoId ('dQw4w9WgXcQ') rather than passing the full URL, calls videos_getVideo(videoId='dQw4w9WgXcQ') and transcripts_getTranscript(videoId='dQw4w9WgXcQ', language='en'), and summarizes using both metadata and transcript.",
+      "files": [],
+      "assertions": [
+        "Extracts and passes the 11-character videoId ('dQw4w9WgXcQ'), never the full YouTube URL",
+        "Calls videos_getVideo and transcripts_getTranscript via youtube-mcp",
+        "Does not fall back to yt-dlp, youtube-transcript-api scripts, or raw YouTube REST API calls"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Find mid-sized independent tech review YouTube channels (10k to 200k subscribers) covering home lab hardware, and list the latest 10 uploads from the top match using minimal API quota.",
+      "expected_output": "Uses channels_findCreators or channels_searchChannels with subscriber bounds (warning that creatorOnly=true uses strict keyword heuristics that may drop valid creators), retrieves normalizedMetadata.uploadsPlaylistId from the selected channel, and calls playlists_getPlaylistItems(playlistId=..., maxResults=10) instead of channels_listVideos to conserve YouTube API search quota.",
+      "files": [],
+      "assertions": [
+        "Uses channels_findCreators or channels_searchChannels with channelMinSubscribers/channelMaxSubscribers (or minSubscribers/maxSubscribers)",
+        "Prefers normalizedMetadata.uploadsPlaylistId + playlists_getPlaylistItems over channels_listVideos to save YouTube Data API search quota",
+        "Accounts for creatorOnly=true heuristic caveats when discovering channels"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Configure zubeid-youtube-mcp-server in Docker over Streamable HTTP with backup API keys for quota rotation and verify the readiness check.",
+      "expected_output": "Sets MCP_TRANSPORT=http, MCP_HOST=0.0.0.0, MCP_PORT=8088 (default), MCP_STATELESS=true, configures YOUTUBE_API_KEY alongside YOUTUBE_API_KEY2 / YOUTUBE_API_KEY3 for automatic quota-exhaustion failover, and points to /mcp and /ready endpoints.",
+      "files": [],
+      "assertions": [
+        "Configures MCP_TRANSPORT=http with /mcp and /ready endpoints (default port 8088, MCP_STATELESS=true)",
+        "Explains YOUTUBE_API_KEY, YOUTUBE_API_KEY2, and YOUTUBE_API_KEY3 automatic quota failover",
+        "Notes that runtime env injection should be preferred over baking .env into images"
+      ]
+    }
+  ]
+}

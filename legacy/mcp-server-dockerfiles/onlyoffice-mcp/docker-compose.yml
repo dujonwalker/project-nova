@@ -1,0 +1,18 @@
+services:
+  docspace-mcp-bridge:
+    image: onlyoffice/docspace-mcp:latest
+    container_name: docspace-mcp-bridge
+    environment:
+      - DOCSPACE_TRANSPORT=streamable-http
+      - DOCSPACE_HOST=0.0.0.0
+      - DOCSPACE_PORT=${SSE_PORT:-3001}
+      - DOCSPACE_BASE_URL=${DOCSPACE_BASE_URL:-http://localhost}
+      - DOCSPACE_API_KEY=${DOCSPACE_API_KEY}
+      - DOCSPACE_ORIGIN=${DOCSPACE_ORIGIN:-http://localhost}
+      - DOCSPACE_USER_AGENT=${DOCSPACE_USER_AGENT:-DocSpace MCP Client}
+      - DOCSPACE_AUTH_TOKEN=${DOCSPACE_AUTH_TOKEN:-}
+      - DOCSPACE_USERNAME=${DOCSPACE_USERNAME:-}
+      - DOCSPACE_PASSWORD=${DOCSPACE_PASSWORD:-}
+    ports:
+      - "${SSE_PORT:-3001}:${SSE_PORT:-3001}"
+    restart: unless-stopped

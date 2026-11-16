@@ -1,0 +1,5 @@
+{
+  "input": "set up a new scene for my webcam and desktop",
+  "reason": "The request involves creating and configuring scenes in OBS Studio, which is a primary capability of the OBS Agent.",
+  "selectedAgent": "obs-agent"
+}

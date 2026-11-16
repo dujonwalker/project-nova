@@ -1,0 +1,135 @@
+{
+  "name": "system-search-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1180,
+        -380
+      ],
+      "id": "6f04c5e0-d344-4299-a843-4a8bb63faf63",
+      "name": "When chat message received",
+      "webhookId": "56c7a50d-23a2-4a78-a6d0-a7f59ca0e83f"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -932,
+        200
+      ],
+      "id": "7fd941a0-6442-4476-bfef-416f95e097b8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"find all .pdf files in my Documents folder\",\n  \"reason\": \"The request involves searching for specific file types across the file system, which is the core capability of the System Search Agent.\",\n  \"selectedAgent\": \"system-search-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1180,
+        -20
+      ],
+      "id": "0bc7ec9b-a6ab-47ca-b4f4-74412591a219",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with access to the Universal File Search Tool for Linux, which enables you to search for files and folders across the Linux file system. This tool utilizes the `locate` command with Unix-style search capabilities to help users find specific files and organize their digital content.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Universal File Search Tool for Linux capabilities documented below\n- Explain that you can search for files and folders across the Linux file system\n- Offer to help with specific file search or organization tasks\n\nThe Universal File Search Tool for Linux has the following capabilities:\n\n1. Search for files and folders by filename patterns\n2. Filter results using Unix-style pattern matching\n3. Sort and limit search results\n\nWhen using the Universal File Search Tool for Linux, you can specify these parameters:\n\n- query (required): The search term or pattern\n- max_results (optional): Limit number of results (default: 100, max: 1000)\n- match_path (optional): Search in full path instead of filename only (default: false)\n- match_case (optional): Enable case-sensitive search (default: false)\n- match_whole_word (optional): Match whole words only (default: false)\n- match_regex (optional): Enable regex search (default: false)\n- sort_by (optional): Sort order for results (default: filename A-Z)\n\nSearch Syntax Guide:\n- Basic pattern wildcards:\n  * `*` matches any number of characters\n  * `?` matches a single character\n  * `[]` matches character classes\n- Advanced search options:\n  * Case-insensitive searches with match_case:false\n  * Regular expression searches with match_regex:true\n  * Full path matching with match_path:true\n\nExamples of effective queries:\n- `*.pdf` - Find all PDF files\n- `report*.txt` - Find all text files starting with \"report\"\n- `<SEARCH_ROOT>/*.conf` - Find configuration files in a specific directory\n- `[Dd]ocument*` - Find files starting with either \"Document\" or \"document\"\n\nWhen helping users find files:\n1. Ask clarifying questions to understand exactly what they're looking for\n2. Suggest effective search patterns based on the user's needs\n3. Recommend using match_regex:true for complex pattern matching\n4. For advanced filtering beyond filename searches, suggest combining results with other Linux commands\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it.\n\nRemember that you can only search for files - you cannot open, modify, delete, or otherwise access file contents. If users request actions beyond searching, simply inform them of this limitation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -960,
+        -20
+      ],
+      "id": "b1f455a8-079b-4024-8397-4a98e8b1fd84",
+      "name": "system-search-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3008/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -812,
+        200
+      ],
+      "id": "36cf2b2d-df52-43a1-8807-d13048977e3d",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "system-search-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "system-search-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "system-search-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "75703fd8-4d12-4642-a098-ba84f704c621",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "2z1ZsWxV8ZG6iMxM",
+  "tags": []
+}

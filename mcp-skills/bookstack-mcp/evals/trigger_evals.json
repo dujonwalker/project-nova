@@ -1,0 +1,50 @@
+[
+  {
+    "query": "search our BookStack wiki for the onboarding guide and summarize it",
+    "should_trigger": true
+  },
+  {
+    "query": "update page 42 in BookStack with a new section and add the Production tag",
+    "should_trigger": true
+  },
+  {
+    "query": "why are create_page and update_page missing from my bookstack-mcp tools?",
+    "should_trigger": true
+  },
+  {
+    "query": "export the Infrastructure book from BookStack as markdown",
+    "should_trigger": true
+  },
+  {
+    "query": "restore a deleted page from the BookStack recycle bin",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I configure bookstack-mcp with BOOKSTACK_TOKEN_ID and enable writes?",
+    "should_trigger": true
+  },
+  {
+    "query": "write a SQL query against BookStack's MySQL database to list all pages",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I install BookStack with Docker Compose?",
+    "should_trigger": false
+  },
+  {
+    "query": "search my Nextcloud Notes for the onboarding checklist",
+    "should_trigger": false
+  },
+  {
+    "query": "update the README.md in our Gitea repository",
+    "should_trigger": false
+  },
+  {
+    "query": "convert this HTML file to Markdown using pandoc",
+    "should_trigger": false
+  },
+  {
+    "query": "check if the BookStack container is healthy with docker ps",
+    "should_trigger": false
+  }
+]

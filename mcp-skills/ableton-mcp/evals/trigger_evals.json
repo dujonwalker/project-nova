@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Set Ableton Live tempo to 128 BPM, create a new MIDI track, and write a 4-bar chord progression clip.",
+    "should_trigger": true
+  },
+  {
+    "query": "Browse Ableton's audio effects for a reverb, load it onto track 2, and adjust its decay time parameter.",
+    "should_trigger": true
+  },
+  {
+    "query": "Read the MIDI notes in track 1 clip slot 0, replace them with a tighter snare pattern, and fire the clip.",
+    "should_trigger": true
+  },
+  {
+    "query": "Copy my Session clips onto the Arrangement timeline starting at bar 5 and add a 'Drop' locator marker.",
+    "should_trigger": true
+  },
+  {
+    "query": "Load an 808 drum kit onto a new track in Ableton and trigger playback.",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I install the AbletonMCP Remote Script and connect a remote Docker ableton-mcp server to Live on port 9877?",
+    "should_trigger": true
+  },
+  {
+    "query": "Clean up my OBS Studio microphone with a noise gate, RNNoise suppression, and compressor.",
+    "should_trigger": false
+  },
+  {
+    "query": "Play my synthwave playlist on the living room Sonos speakers via Music Assistant.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a 15-second ambient techno loop WAV file from text using AudioCraft MusicGen.",
+    "should_trigger": false
+  },
+  {
+    "query": "Search my Navidrome music library for albums by Boards of Canada.",
+    "should_trigger": false
+  },
+  {
+    "query": "Find all .als and .wav files in /data/projects using filesystem search.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check why OBS Studio is dropping frames during my livestream.",
+    "should_trigger": false
+  }
+]

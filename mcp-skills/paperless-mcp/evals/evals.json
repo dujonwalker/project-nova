@@ -1,0 +1,37 @@
+{
+  "skill_name": "paperless-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find all invoices from Acme Electric in Paperless-ngx from 2025, inspect the invoice total without flooding context with full multi-page OCR dumps, and attach the 'Reviewed' tag to each match.",
+      "expected_output": "Look up correspondent/tag IDs first with list_correspondents and list_tags, search via search_passages or query_documents + bounded get_document_content windows, and add the tag using bulk_edit_documents with method add_tag or modify_tags.",
+      "files": [],
+      "assertions": [
+        "Calls list_correspondents and list_tags before filtering by correspondent or tag IDs",
+        "Uses search_passages or bounded get_document_content (offset/max_chars) rather than requesting unbounded full content",
+        "Uses bulk_edit_documents with method add_tag or modify_tags (not curl/CLI) to apply the Reviewed tag"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Document #412 has the wrong correspondent assigned and needs an updated custom field value without losing its other existing custom fields. Also add a quick note explaining why it was corrected.",
+      "expected_output": "Read current document metadata via get_document, clear or change correspondent using update_document, add/modify the single custom field safely via bulk_edit_documents modify_custom_fields (or preserve all existing custom_fields if calling update_document), and add the note via create_document_note.",
+      "files": [],
+      "assertions": [
+        "Warns or avoids wiping unrelated custom_fields when calling update_document (or uses bulk_edit_documents method modify_custom_fields)",
+        "Uses update_document (with nullable correspondent) rather than raw REST calls",
+        "Calls create_document_note to record the explanation"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We deployed retiform-labs/paperless-mcp with --http and PAPERLESS_API_KEY set, but our MCP client gets 401 errors. Also, what happens if we pass file_path to post_document?",
+      "expected_output": "Explain that --http requires clients to send Authorization: Bearer <token> unless --no-auth is enabled on the server, and explain that post_document file_path is restricted to directories in PAPERLESS_MCP_UPLOAD_PATHS (colon-separated) with a 100 MB limit.",
+      "files": [],
+      "assertions": [
+        "Explains that --http rejects unauthenticated requests with 401 even when PAPERLESS_API_KEY is set unless --no-auth is passed",
+        "Explains PAPERLESS_MCP_UPLOAD_PATHS (colon-separated allowlist) and the 100 MB upload limit for post_document file_path"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+server {
+    listen ${SSE_PORT};
+    server_name _;
+
+    client_max_body_size 64m;
+
+    location = /health {
+        proxy_pass ${CLI_UPSTREAM_URL}/health;
+        proxy_http_version 1.1;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Connection "";
+    }
+
+    location = /healthz {
+        proxy_pass ${CLI_UPSTREAM_URL}/healthz;
+        proxy_http_version 1.1;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Connection "";
+    }
+
+    location /mcp {
+        proxy_pass ${CLI_UPSTREAM_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Origin "";
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+
+    location / {
+        default_type application/json;
+        return 404 '{"error":"Not found. Use /mcp for Streamable HTTP or /health."}';
+    }
+}

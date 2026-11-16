@@ -1,0 +1,36 @@
+{
+  "skill_name": "gitea-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find all open pull requests in our infrastructure repo on Gitea, inspect the diff of the newest one, and post a review comment.",
+      "expected_output": "Uses gitea-mcp MCP tools in sequence: list_pull_requests -> pull_request_read (diff/files) -> pull_request_review_write, without falling back to curl or shell REST scripts.",
+      "assertions": [
+        "Uses list_pull_requests to find open PRs",
+        "Uses pull_request_read to inspect the diff or files",
+        "Uses pull_request_review_write to submit/create the review",
+        "Does not use curl or custom REST scripts for Gitea API calls"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Why did list_issues on our Gitea repo only return 50 issues when I know there are over 120 open issues, and why can't I see issue_write?",
+      "expected_output": "Explains that gitea-mcp pagination is silently capped at [api].MAX_RESPONSE_ITEMS (default 50) so you must paginate with page, and missing Write tools means the server is running with -r (GITEA_READONLY=true) or filtered by -S/-O.",
+      "assertions": [
+        "Explains the 50-item default MAX_RESPONSE_ITEMS pagination cap and paging with page",
+        "Explains that missing Write tools indicate -r / GITEA_READONLY=true or -S/-O filtering"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to connect VS Code to a self-hosted Gitea instance at https://gitea.example.org (self-signed cert) using gitea-mcp in Docker, exposing only read-only issue and PR tools.",
+      "expected_output": "Provides a .vscode/mcp.json (or User Settings mcp block) using docker.gitea.com/gitea-mcp-server with -r, -k (or -ca-cert), and -S issue,pull_request.",
+      "assertions": [
+        "Config uses docker.gitea.com/gitea-mcp-server",
+        "Includes -r or GITEA_READONLY=true",
+        "Includes -k or GITEA_INSECURE=true (or -ca-cert)",
+        "Restricts tools with -S issue,pull_request"
+      ]
+    }
+  ]
+}

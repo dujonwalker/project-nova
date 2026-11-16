@@ -1,0 +1,41 @@
+{
+  "skill_name": "reaper-qa-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "name": "discover-and-parse-rpp-routing",
+      "prompt": "Find my REAPER projects on disk and inspect the routing and FX chains for the project named 'Rock Song' without modifying anything.",
+      "expected_output": "Calls find_reaper_projects() to locate the matching .RPP path, then calls parse_reaper_project(project_path) and summarizes tempo, track folder/routing (main_send, receives), and FX chains read-only.",
+      "files": [],
+      "assertions": [
+        "Calls find_reaper_projects() first instead of guessing .RPP paths",
+        "Calls parse_reaper_project(project_path) using the discovered path",
+        "Notes tracks with main_send: false and active receives when explaining routing"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "pre-fx-vocal-audio-audit",
+      "prompt": "Audit the vocal tracks in my closed .RPP project for clipping, DC offset, boxy low mids, or phase issues across the regions actually used in the arrangement.",
+      "expected_output": "Calls analyze_audio_files(project_path, track_filter='Vocal', whole_file=False) and reports level, spectral, stereo, dynamics findings and warnings while noting all measurements are pre-FX/pre-fader.",
+      "files": [],
+      "assertions": [
+        "Uses track_filter and keeps whole_file=False so only played regions (SOFFS + LENGTH * playrate) are analyzed",
+        "Explicitly states that analyze_audio_files measurements are pre-FX and pre-fader (raw disk source audio)",
+        "Reports any triggered warnings (peak > -0.3 dBFS, DC offset, 200-500 Hz tilt, phase coherence < 0.5, LUFS/crest factor)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "installed-fx-cache-search",
+      "prompt": "Check my REAPER plugin cache for installed VST3 compressor or reverb plugins.",
+      "expected_output": "Calls list_installed_fx with search_query or plugin_type='VST3' (remembering search_query takes precedence over plugin_type in a single call) and notes results reflect REAPER's last plugin scan on disk.",
+      "files": [],
+      "assertions": [
+        "Calls list_installed_fx",
+        "Accounts for search_query taking precedence over plugin_type if filtering by both",
+        "Notes results come from REAPER's disk plugin cache (.ini)"
+      ]
+    }
+  ]
+}

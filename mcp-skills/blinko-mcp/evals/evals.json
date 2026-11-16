@@ -1,0 +1,36 @@
+{
+  "skill_name": "blinko-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find my Blinko flash note about Prometheus alerts, read the full text, and promote it into a regular Blinko note.",
+      "expected_output": "Searches via search_blinko_notes(searchText='Prometheus alerts', type=0), retrieves the full note with get_blinko_note(noteId=...), and promotes it to a regular note (type 1) using upsert_blinko_note(content=..., noteId=...) without using blinko_client.py or curl.",
+      "files": [],
+      "assertions": [
+        "Searches flash notes via search_blinko_notes (type=0) and retrieves full content with get_blinko_note",
+        "Promotes to regular note using upsert_blinko_note(content=..., noteId=...)",
+        "Uses blinko-mcp tools directly without falling back to blinko_client.py or raw REST API calls"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Check today's Blinko daily review notes and create a new Blinko todo to rotate TLS certificates.",
+      "expected_output": "Calls review_blinko_daily_notes() for the daily review queue and today's notes, then creates the todo using upsert_blinko_todo(content='...').",
+      "files": [],
+      "assertions": [
+        "Calls review_blinko_daily_notes() with no arguments for today's review queue and notes",
+        "Uses upsert_blinko_todo (not upsert_blinko_note or upsert_blinko_flash_note) to create a type 2 todo"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "List what is currently in Blinko's recycle bin and ask before emptying it permanently.",
+      "expected_output": "Lists recycled notes via search_blinko_notes(isRecycle=true) and asks for explicit user confirmation before invoking clear_blinko_recycle_bin.",
+      "files": [],
+      "assertions": [
+        "Uses search_blinko_notes(isRecycle=true) to inspect the recycle bin",
+        "Does NOT call clear_blinko_recycle_bin without explicit user confirmation because it is irreversible"
+      ]
+    }
+  ]
+}

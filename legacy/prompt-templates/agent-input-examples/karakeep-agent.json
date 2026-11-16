@@ -1,0 +1,5 @@
+{
+  "input": "add a bookmark for this design resource",
+  "reason": "The request is about adding a bookmark, which is one of the primary functions of the Karakeep Agent for digital content management.",
+  "selectedAgent": "karakee-agent"
+}

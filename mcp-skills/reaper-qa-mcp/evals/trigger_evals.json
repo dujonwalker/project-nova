@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Find all .RPP projects in my REAPER projects folder and show which tracks route into buses.",
+    "should_trigger": true
+  },
+  {
+    "query": "Parse the closed .RPP file for my podcast episode and inspect its FX chains and active takes.",
+    "should_trigger": true
+  },
+  {
+    "query": "Analyze the raw vocal source regions in my REAPER project for clipping, DC offset, and phase cancellation without opening REAPER.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check my pre-FX drum recordings in the REAPER project for boxy low mids around 200-500 Hz.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search my REAPER plugin cache to see which VST3 or CLAP synths are installed.",
+    "should_trigger": true
+  },
+  {
+    "query": "Audit the offline .RPP project audio files and report LUFS, true peak, and crest factor warnings.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a 4-bar MIDI chord progression in REAPER at 128 BPM and run engine_mix on the session.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a sidechain send from the kick to the bass track in my open REAPER session and render stems.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a drum rack to track 1 in Ableton Live and launch scene 2.",
+    "should_trigger": false
+  },
+  {
+    "query": "Switch OBS Studio to the Stream Starting scene and start recording.",
+    "should_trigger": false
+  },
+  {
+    "query": "Normalize this standalone WAV file using ffmpeg and convert it to FLAC.",
+    "should_trigger": false
+  },
+  {
+    "query": "Find all markdown notes inside my workspace directory.",
+    "should_trigger": false
+  }
+]

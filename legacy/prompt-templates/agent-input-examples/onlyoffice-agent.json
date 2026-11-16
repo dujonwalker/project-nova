@@ -1,0 +1,5 @@
+{
+  "input": "create a new folder for the marketing team in DocSpace",
+  "reason": "The request involves managing folders in ONLYOFFICE DocSpace, which is exactly what the OnlyOffice Agent is designed to handle.",
+  "selectedAgent": "onlyoffice-agent"
+}

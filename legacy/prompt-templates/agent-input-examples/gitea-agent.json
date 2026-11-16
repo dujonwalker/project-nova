@@ -1,0 +1,5 @@
+{
+  "input": "list all open pull requests in our gitea repo",
+  "reason": "The request involves managing Gitea repository pull requests, which is a primary capability of the Gitea Agent.",
+  "selectedAgent": "gitea-agent"
+}

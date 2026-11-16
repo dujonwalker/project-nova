@@ -1,0 +1,43 @@
+services:
+  komodo-mcp:
+    build:
+      context: .
+    container_name: komodo-mcp
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${MCP_PORT:-3019}:${MCP_PORT:-3019}"
+    environment:
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-http}
+      - MCP_BIND_HOST=${MCP_BIND_HOST:-0.0.0.0}
+      - MCP_PORT=${MCP_PORT:-3019}
+      - MCP_BASE_URL=${MCP_BASE_URL:-http://127.0.0.1:${MCP_PORT:-3019}}
+      - MCP_AUTH_ENABLED=${MCP_AUTH_ENABLED:-false}
+      - KOMODO_MCP_ALLOW_OPEN_WRITES=${KOMODO_MCP_ALLOW_OPEN_WRITES:-true}
+      - MCP_STATELESS=${MCP_STATELESS:-true}
+      - MCP_CONFIRM_DESTRUCTIVE=${MCP_CONFIRM_DESTRUCTIVE:-true}
+      - MCP_CONFIRM_FALLBACK=${MCP_CONFIRM_FALLBACK:-allow}
+      - MCP_SECRET_SCRUB_ENABLED=${MCP_SECRET_SCRUB_ENABLED:-true}
+      - KOMODO_URL=${KOMODO_URL:-http://127.0.0.1:9120}
+      - KOMODO_API_KEY=${KOMODO_API_KEY}
+      - KOMODO_API_SECRET=${KOMODO_API_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - komodo-mcp-logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:'+(process.env.MCP_PORT||3019)+'/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  komodo-mcp-logs:
+    driver: local

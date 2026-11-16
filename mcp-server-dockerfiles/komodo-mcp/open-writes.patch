@@ -1,0 +1,36 @@
+diff --git a/src/index.ts b/src/index.ts
+index 5ae9f77..df2ab18 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -190,12 +190,25 @@ if (authActive) {
+ // connection; authenticated HTTP resolves a per-user client from each request's JWT.
+ const anonymousMode = !authConfig;
+
+-// Open network deployment (http OR https, no per-user auth) ⇒ READ-ONLY, as an invariant.
+-// Anonymous requests are granted only the READ scope, so the framework hides and rejects
+-// every write/operate/exec/delete tool (komodo:operate / komodo:admin). This bounds the blast
+-// radius of a misconfigured open server to reads; the only way to get write access over the
+-// network is to enable [auth]. stdio (httpMode === false) is local & trusted ⇒ unrestricted.
+-const anonymousScopes = httpMode && anonymousMode ? [ToolScopes.READ] : undefined;
++// Open network deployment (http OR https, no per-user auth) defaults to READ-ONLY
++// unless explicitly opted into open writes with Docker Compose_MCP_ALLOW_OPEN_WRITES=true
++// (for isolated self-hosted deployments using shared Komodo API key permissions).
++const allowOpenWrites = /^(1|true|yes|on)$/i.test((process.env.KOMODO_MCP_ALLOW_OPEN_WRITES ?? "").trim());
++const anonymousScopes = httpMode && anonymousMode && !allowOpenWrites ? [ToolScopes.READ] : undefined;
++
++if (httpMode && anonymousMode && allowOpenWrites && resolveAuth(startupCreds) !== null) {
++  logger.warn(
++    "SECURITY: MCP authentication is disabled with KOMODO_MCP_ALLOW_OPEN_WRITES=true — this %s server exposes all " +
++      "configured read, write, exec and delete tools using the shared global Komodo identity.",
++    transportMode,
++  );
++  logAuditEvent({
++    category: "config",
++    action: "open_writes_anonymous",
++    outcome: "info",
++    detail: { transport: transportMode, grantedScopes: [ToolScopes.READ, ToolScopes.OPERATE, ToolScopes.ADMIN] },
++  });
++}
+
+ // Security notice: an open network server backed by shared global credentials is now read-only.
+ // Not applicable to stdio (one local user).

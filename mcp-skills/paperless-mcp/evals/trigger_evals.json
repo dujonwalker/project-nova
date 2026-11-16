@@ -1,0 +1,14 @@
+[
+  {"query": "Search my Paperless-ngx archive for 2024 tax receipts from my accountant and tag them as Filed.", "should_trigger": true},
+  {"query": "Read the OCR text of Paperless document 882 in pages and download the original PDF.", "should_trigger": true},
+  {"query": "Upload /imports/lease.pdf into Paperless using paperless-mcp and set document type to Contract.", "should_trigger": true},
+  {"query": "Create a Paperless mail rule to automatically import PDF attachments with 'Statement' in the subject.", "should_trigger": true},
+  {"query": "Bulk-merge Paperless documents 101, 102, and 103 and remove the Inbox tag.", "should_trigger": true},
+  {"query": "Our @retiform/paperless-mcp Docker container keeps returning HTTP 406 against an older Paperless server — how do I fix it?", "should_trigger": true},
+  {"query": "Find the Home Assistant automation that emails me when a new PDF lands on the NAS.", "should_trigger": false},
+  {"query": "Merge two local PDFs on disk using Stirling PDF and compress the result.", "should_trigger": false},
+  {"query": "Create a new wiki page in BookStack under our Tax Planning shelf.", "should_trigger": false},
+  {"query": "Save this tax preparation checklist as a pinned memo in Memos.", "should_trigger": false},
+  {"query": "Extract medical lab entities from this downloaded PDF into a Fasten FHIR bundle.", "should_trigger": false},
+  {"query": "Search my Karakeep bookmarks tagged 'receipts' and export the URLs.", "should_trigger": false}
+]

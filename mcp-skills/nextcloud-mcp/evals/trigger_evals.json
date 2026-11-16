@@ -1,0 +1,50 @@
+[
+  {
+    "query": "List my Nextcloud calendars and create a reminder todo for Friday.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search my Nextcloud Notes for tax receipts and append a new entry.",
+    "should_trigger": true
+  },
+  {
+    "query": "Read the PDF in /Documents/Contracts on Nextcloud and restore an older file version if needed.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show all cards on my Sprint board in Nextcloud Deck and move one to Done.",
+    "should_trigger": true
+  },
+  {
+    "query": "Import this recipe URL into Nextcloud Cookbook and add its ingredients to my Nextcloud Shopping List.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check unread messages in my Nextcloud Talk project room and look up a phone number in Nextcloud Contacts.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a new documentation page in BookStack under the Infrastructure book.",
+    "should_trigger": false
+  },
+  {
+    "query": "Search my Paperless-NGX archive for last year's electric bill PDF.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create an issue and pull request on my Forgejo repository.",
+    "should_trigger": false
+  },
+  {
+    "query": "List the files inside my local workspace directory using filesystem-mcp.",
+    "should_trigger": false
+  },
+  {
+    "query": "Save a quick flash note in Blinko.",
+    "should_trigger": false
+  },
+  {
+    "query": "Compose a 4-bar synth chord progression in REAPER.",
+    "should_trigger": false
+  }
+]

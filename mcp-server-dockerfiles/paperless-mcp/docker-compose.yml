@@ -1,0 +1,19 @@
+services:
+  paperless-mcp:
+    build:
+      context: .
+    container_name: paperless-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3001}:${SSE_PORT:-3001}"
+    environment:
+      - PAPERLESS_URL=${PAPERLESS_URL:-http://127.0.0.1:8000}
+      - PAPERLESS_API_KEY=${PAPERLESS_API_KEY}
+      - PAPERLESS_PUBLIC_URL=${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8000}
+      - SSE_PORT=${SSE_PORT:-3001}
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

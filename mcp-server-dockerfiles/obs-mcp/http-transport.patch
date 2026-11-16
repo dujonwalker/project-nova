@@ -1,0 +1,83 @@
+--- a/obs_mcp/main.py
++++ b/obs_mcp/main.py
+@@ -1,9 +1,13 @@
+ """OBS-MCP server entry point."""
+
+ import logging
++import os
+ import sys
++from urllib.parse import urlparse
+
+ from mcp.server.fastmcp import FastMCP
++from mcp.server.transport_security import TransportSecuritySettings
++from starlette.responses import JSONResponse
+
+ from obs_mcp.obs_client import OBSClient
+ from obs_mcp.tool_registry import register_all_tools
+@@ -16,6 +20,38 @@
+ # our own INFO level so that line never reaches stderr (and whatever log
+ # file the MCP client persists stderr to).
+ logging.getLogger("obsws_python").setLevel(logging.WARNING)
++
++
++def _env_bool(name: str, default: bool) -> bool:
++    raw = os.environ.get(name)
++    if raw is None or not raw.strip():
++        return default
++    return raw.strip().lower() in ("1", "true", "yes", "on")
++
++
++def _normalize_obs_env() -> None:
++    """Normalize blank env vars and support OBS_WEBSOCKET_* fallbacks."""
++    if not os.environ.get("OBS_HOST", "").strip():
++        os.environ.pop("OBS_HOST", None)
++    if not os.environ.get("OBS_PORT", "").strip():
++        os.environ.pop("OBS_PORT", None)
++
++    ws_url = os.environ.get("OBS_WEBSOCKET_URL", "").strip()
++    if ws_url and "OBS_HOST" not in os.environ:
++        parsed = urlparse(ws_url if "://" in ws_url else f"ws://{ws_url}")
++        if parsed.hostname:
++            os.environ["OBS_HOST"] = parsed.hostname
++        if parsed.port and "OBS_PORT" not in os.environ:
++            os.environ["OBS_PORT"] = str(parsed.port)
++
++    os.environ.setdefault("OBS_HOST", "host.docker.internal")
++
++    ws_pw = os.environ.get("OBS_WEBSOCKET_PASSWORD", "")
++    if ws_pw and not os.environ.get("OBS_PASSWORD", ""):
++        os.environ["OBS_PASSWORD"] = ws_pw
++
++
++_normalize_obs_env()
+
+ client = OBSClient()
+
+@@ -30,13 +66,26 @@
+         "what's shown in OBS. Use get_scene_list / get_input_list to see "
+         "exact names before acting on them."
+     ),
++    host=os.environ.get("SSE_HOST", "0.0.0.0").strip() or "0.0.0.0",
++    port=int((os.environ.get("SSE_PORT") or "3012").strip()),
++    stateless_http=_env_bool("MCP_STATELESS_HTTP", True),
++    json_response=_env_bool("MCP_JSON_RESPONSE", False),
++    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+ )
++
++
++@mcp.custom_route("/health", methods=["GET"])
++@mcp.custom_route("/healthz", methods=["GET"])
++async def health(_request):
++    return JSONResponse({"status": "ok", "server": "obs-mcp", "version": "0.2.0"})
++
+
+ register_all_tools(mcp)
+
+
+ def main():
+-    mcp.run()
++    transport = os.environ.get("MCP_TRANSPORT", "streamable-http").strip() or "streamable-http"
++    mcp.run(transport=transport)
+
+
+ if __name__ == "__main__":

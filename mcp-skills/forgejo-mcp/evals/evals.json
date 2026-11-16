@@ -1,0 +1,35 @@
+{
+  "skill_name": "forgejo-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Action run 222 in the URL https://forgejo.example.org/acme/api/actions/runs/222 failed. Fetch the failing job logs and cancel any still-running jobs.",
+      "expected_output": "Uses list_workflow_runs with run_number: 222 to resolve the database run_id, then calls list_action_run_jobs and get_action_job_logs (not a run-wide zip), and cancel_workflow_run with the database run_id.",
+      "assertions": [
+        "Resolves web URL run_number 222 to a database run_id via list_workflow_runs",
+        "Uses list_action_run_jobs and get_action_job_logs with the database run_id / job_id",
+        "Notes cancel_workflow_run uses the database run_id (and requires Forgejo v16+)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Update three config files in acme/infra in a single commit, then create a wiki page called Guides/Deploy and read it via its forgejo:// resource.",
+      "expected_output": "Uses change_files for a single atomic commit, calls create_wiki_page noting slash titles are flat (Guides parent is not auto-created), and uses the returned normalized page_name with %2F encoding in forgejo://repo/acme/infra/wiki/Guides%2FDeploy.",
+      "assertions": [
+        "Uses change_files for an atomic multi-file commit",
+        "Notes slash-separated wiki titles are flat with no automatic parent page",
+        "Uses the normalized page_name and %2F encoding for / in the forgejo:// wiki URI"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We deployed forgejo-mcp in a container with --transport http --host 0.0.0.0 --token $TOKEN and it either refuses to start or returns 401 to our MCP client.",
+      "expected_output": "Explains --host 0.0.0.0 requires --allowed-hosts or startup fails, and http/sse require a per-request Authorization header (401 without it) unless --allow-operator-token-fallback is explicitly set.",
+      "assertions": [
+        "Identifies --allowed-hosts is required whenever --host is non-loopback",
+        "Explains http/sse require per-request Authorization header by default (401 without it)",
+        "Mentions --allow-operator-token-fallback (and its single-user security caveat) or sending Authorization: Bearer/token"
+      ]
+    }
+  ]
+}

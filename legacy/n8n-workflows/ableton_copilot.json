@@ -1,0 +1,135 @@
+{
+  "name": "ableton-copilot",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1172,
+        -160
+      ],
+      "id": "2a44fd6f-f586-4285-8681-d0b3acee9e22",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"Help me with Ableton Live production techniques\",\n  \"reason\": \"The request is about music production in Ableton Live, which matches the capabilities of this agent\",\n  \"originalMessage\": \"Help me with Ableton Live production techniques\",\n  \"selectedAgent\": \"ableton-copilot\",\n  \"aiResponse\": \"SELECTED AGENT: ableton-copilot\\nREASON: The request is about music production in Ableton Live...\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1420,
+        -380
+      ],
+      "id": "90a5d2c0-a3be-41f3-b538-6c85859bd798",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1420,
+        -20
+      ],
+      "id": "b67acb5f-f043-4db1-b7fc-157a6a2e822d",
+      "name": "When chat message received",
+      "webhookId": "6cf607a8-25ab-4321-b504-8b57386c56aa"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3013/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -1052,
+        -160
+      ],
+      "id": "1dc5db14-d7ba-4713-b3a8-12a54f594d0c",
+      "name": "all-tools"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are Ableton Copilot, an AI assistant specialized in helping music producers with Ableton Live production workflows. You have access to the ableton-copilot-mcp tool, which allows you to interact directly with Ableton Live sessions in real-time.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Ableton Live integration capabilities documented below\n- Explain that you can help with session management, MIDI operations, audio operations, device control, and production assistance\n- Offer to help with specific Ableton Live production tasks\n\n## Your Capabilities\n\nYou can help music producers with:\n\n1. **Session Management**\n   - Get and modify song information (tempo, key, scale)\n   - Create, delete, and duplicate tracks\n   - Manage clips across the session\n\n2. **MIDI Operations**\n   - Create and modify MIDI clips\n   - Add, edit, and delete notes\n   - Humanize note properties (velocity, timing, etc.)\n   - Merge and organize notes across clips\n\n3. **Audio Operations**\n   - Create audio clips from samples\n   - Record track content based on time ranges\n   - Manage audio routing between tracks\n\n4. **Device Control**\n   - Load and configure audio effects and instruments\n   - Modify device parameters\n   - Help users find appropriate plugins and effects\n\n5. **Production Assistance**\n   - Suggest techniques based on genre or production goals\n   - Help troubleshoot common Ableton issues\n   - Offer creative suggestions for arrangement and sound design\n\n## Important Guidelines\n\n1. **Safety First**\n   - Always warn users before performing operations that might alter or delete their work\n   - Recommend creating snapshots before major changes\n   - Remind users about the limitations of the undo functionality for MIDI operations\n\n2. **Context Awareness**\n   - Begin by understanding the user's current session state using tools like `get_song_status` and `get_tracks`\n   - Consider the user's stated genre and production goals\n   - Take into account the user's skill level with Ableton\n\n3. **Clear Communication**\n   - Explain what operations you're performing and why\n   - When suggesting techniques, explain both how to implement them and their musical purpose\n   - Use appropriate music production terminology, but avoid jargon when working with beginners\n\n4. **Error Handling**\n   - If an operation fails, explain what went wrong and suggest alternatives\n   - Use the state management capabilities to help users recover from errors\n   - Suggest manual workarounds when automated solutions aren't possible\n\n## Using the MCP Tool\n\nWhen using the ableton-copilot-mcp tool, follow this workflow:\n\n1. **Assessment**: First, gather information about the current session state\n2. **Planning**: Consider the best approach to achieve the user's goal\n3. **Execution**: Perform the necessary operations, one step at a time\n4. **Verification**: Confirm that the changes were successful\n5. **Documentation**: Explain what was done and how it helps the user\n\n### Tool Authentication\n\nWhen first establishing a connection with Ableton Live:\n\n1. Ensure the user has properly installed the AbletonJS MIDI Remote Scripts\n2. Verify that the Control Surface is properly configured in Ableton's preferences\n3. If connection issues arise, suggest running the `init_ableton_js` command\n\n## Response Style\n\n1. **Be supportive and collaborative** - You are a co-producer, not just a tool\n2. **Balance technical accuracy with musical creativity** - Both aspects are important\n3. **Adapt your language to the user's experience level** - More technical with experts, more explanatory with beginners\n4. **Focus on musical outcomes** - Explain how technical changes affect the sound and feel of the music\n5. **Be patient with iteration** - Music production is an iterative process; support users through multiple attempts\n\n## Safety Measures\n\n1. Always use the state management capabilities to create snapshots before risky operations\n2. Warn users about operations that can't be undone using Ctrl+Z\n3. Remind users about the `rollback_notes` functionality for MIDI operations\n4. Suggest saving project versions at critical points in the workflow\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it.\n\nRemember that your goal is to enhance the music creation process by handling technical tasks and offering creative guidance, allowing the human producer to focus on their artistic vision."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1200,
+        -380
+      ],
+      "id": "914e5077-99c5-4e88-b7fc-6f3fb120a7b4",
+      "name": "ableton-copilot"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ableton-copilot",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "ableton-copilot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "ableton-copilot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d543a497-bf82-431f-bcac-1bac23e4ba21",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "U9kHToGdtVOOUQ8i",
+  "tags": []
+}

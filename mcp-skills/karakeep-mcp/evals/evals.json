@@ -1,0 +1,33 @@
+{
+  "skill_name": "karakeep-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find my favorited Karakeep bookmarks about kubernetes from 2025, read the full text of the top match, and tag it with self-hosted environment.",
+      "expected_output": "Calls search-bookmarks with qualifiers (e.g. kubernetes is:fav after:2025-01-01 before:2025-12-31), then calls get-bookmark-content to fetch the Markdown body, then calls attach-tag-to-bookmark with tagsToAttach: [\"self-hosted environment\"].",
+      "assertions": [
+        "Uses search-bookmarks with appropriate qualifiers (is:fav, date bounds)",
+        "Calls get-bookmark-content rather than assuming search-bookmarks returns full content",
+        "Uses attach-tag-to-bookmark passing tag name in tagsToAttach (not a tagId)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "If I call delete-list on a parent list in Karakeep, what happens to its child lists and bookmarks, and how do I clear a bookmark's summary without changing its note?",
+      "expected_output": "Explains delete-list keeps bookmarks and promotes child lists to root level (parentId: null) unless re-parented first, and update-bookmark accepts summary: null while leaving omitted fields like note unchanged.",
+      "assertions": [
+        "States delete-list preserves bookmarks and sets child lists' parentId to null (root level)",
+        "States update-bookmark accepts summary: null to clear it and leaves omitted fields unchanged"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run a semantic search in Karakeep sorted by creation date asc.",
+      "expected_output": "Notes that searchMode: semantic (and hybrid) only support sortOrder: relevance, so sortOrder: asc requires searchMode: fts (or omitting semantic/hybrid).",
+      "assertions": [
+        "Identifies that semantic and hybrid search modes only support relevance sorting",
+        "Recommends sortOrder: relevance for semantic search or searchMode: fts for asc date sorting"
+      ]
+    }
+  ]
+}

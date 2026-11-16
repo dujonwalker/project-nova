@@ -1,0 +1,14 @@
+[
+  {"query": "Search Outline Wiki for our Kubernetes runbooks, including drafts.", "should_trigger": true},
+  {"query": "Read just the Deployment Checklist section of Outline document abc-123 and update two lines.", "should_trigger": true},
+  {"query": "Add an architecture flowchart to our Outline document.", "should_trigger": true},
+  {"query": "Check which Outline docs link to this page before archiving it.", "should_trigger": true},
+  {"query": "Stage three edits to an Outline guide and publish them in one API write.", "should_trigger": true},
+  {"query": "Enable OUTLINE_DYNAMIC_TOOL_LIST and x-outline-api-key header auth on mcp-outline.", "should_trigger": true},
+  {"query": "Create a new book and page in BookStack for our self-hosted environment network map.", "should_trigger": false},
+  {"query": "Save a Markdown memo with #work tag in Memos.", "should_trigger": false},
+  {"query": "Create a note in TriliumNext under the Projects folder.", "should_trigger": false},
+  {"query": "Search my Paperless-ngx PDF receipts from 2025.", "should_trigger": false},
+  {"query": "Create a Docmost wiki page inside the Engineering space.", "should_trigger": false},
+  {"query": "Open a pull request in Gitea updating the deployment YAML.", "should_trigger": false}
+]

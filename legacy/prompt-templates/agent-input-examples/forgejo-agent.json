@@ -1,0 +1,5 @@
+{
+  "input": "create a new branch in my forgejo repository",
+  "reason": "The request specifically mentions creating a branch in Forgejo, which is exactly what the Forgejo Agent is designed to handle.",
+  "selectedAgent": "forgejo-agent"
+}

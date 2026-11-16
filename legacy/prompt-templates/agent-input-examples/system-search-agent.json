@@ -1,0 +1,5 @@
+{
+  "input": "find all .pdf files in my Documents folder",
+  "reason": "The request involves searching for specific file types across the file system, which is the core capability of the System Search Agent.",
+  "selectedAgent": "system-search-agent"
+}

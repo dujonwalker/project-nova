@@ -1,0 +1,30 @@
+services:
+  gitea-mcp-server:
+    image: docker.gitea.com/gitea-mcp-server:latest
+    container_name: gitea-mcp-server
+    restart: unless-stopped
+    command:
+      - "/app/gitea-mcp"
+      - "-t"
+      - "http"
+      - "-port"
+      - "${SSE_PORT:-3008}"
+    ports:
+      - "${SSE_PORT:-3008}:${SSE_PORT:-3008}"
+    environment:
+      - GITEA_HOST=${GITEA_HOST:-http://127.0.0.1:3000}
+      - GITEA_ACCESS_TOKEN=${GITEA_ACCESS_TOKEN}
+      - GITEA_INSECURE=${GITEA_INSECURE:-true}
+      - GITEA_DEBUG=${DEBUG_MODE:-false}
+    volumes:
+      - gitea-mcp-logs:/home/gitea-mcp/.gitea-mcp
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  gitea-mcp-logs:
+    driver: local

@@ -1,0 +1,553 @@
+diff --git a/src/http-transport.js b/src/http-transport.js
+new file mode 100644
+index 0000000..a041459
+--- /dev/null
++++ b/src/http-transport.js
+@@ -0,0 +1,163 @@
++import http from 'node:http';
++import { randomUUID } from 'node:crypto';
++import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
++
++import { createServer } from './server.js';
++import { defaults, hasApiKey } from './config.js';
++
++const PACKAGE_VERSION = '0.1.2';
++
++/**
++ * Returns the configured MCP transport ('stdio' by default, or 'streamable-http').
++ *
++ * @param {NodeJS.ProcessEnv} [env]
++ * @returns {string}
++ */
++export function getTransport(env = process.env) {
++  return (env.MCP_TRANSPORT || 'stdio').trim().toLowerCase() || 'stdio';
++}
++
++function isStateless(env = process.env) {
++  const raw = (env.MCP_STATELESS_HTTP ?? 'true').trim().toLowerCase();
++  return !['0', 'false', 'no', 'off'].includes(raw);
++}
++
++/**
++ * Builds the Node HTTP server serving /mcp (Streamable HTTP) and /health(/healthz).
++ *
++ * @param {{ stateless?: boolean }} [options]
++ * @returns {http.Server}
++ */
++export function createHttpServer(options = {}) {
++  const stateless = options.stateless ?? isStateless();
++  const sessions = new Map();
++
++  return http.createServer(async (req, res) => {
++    const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
++
++    if (
++      (req.method === 'GET' || req.method === 'HEAD') &&
++      (url.pathname === '/health' || url.pathname === '/healthz')
++    ) {
++      res.writeHead(200, { 'Content-Type': 'application/json' });
++      if (req.method === 'HEAD') {
++        res.end();
++        return;
++      }
++      res.end(
++        JSON.stringify({
++          status: 'ok',
++          transport: 'streamable-http',
++          server: 'vision-bridge-mcp',
++          version: PACKAGE_VERSION,
++          gemini_key_configured: hasApiKey(),
++          model: (process.env.GEMINI_MODEL || '').trim() || defaults.model,
++        }),
++      );
++      return;
++    }
++
++    if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
++      try {
++        if (stateless) {
++          const server = createServer();
++          const transport = new StreamableHTTPServerTransport({
++            sessionIdGenerator: undefined,
++          });
++          res.on('close', () => {
++            transport.close().catch(() => {});
++            server.close().catch(() => {});
++          });
++          await server.connect(transport);
++          await transport.handleRequest(req, res);
++          return;
++        }
++
++        const sessionId = req.headers['mcp-session-id'];
++        if (sessionId) {
++          if (!sessions.has(sessionId)) {
++            res.writeHead(404, { 'Content-Type': 'application/json' });
++            res.end(
++              JSON.stringify({
++                jsonrpc: '2.0',
++                error: { code: -32001, message: 'Session not found' },
++                id: null,
++              }),
++            );
++            return;
++          }
++          const session = sessions.get(sessionId);
++          await session.transport.handleRequest(req, res);
++          return;
++        }
++
++        const server = createServer();
++        const transport = new StreamableHTTPServerTransport({
++          sessionIdGenerator: () => randomUUID(),
++          onsessioninitialized: (sid) => {
++            sessions.set(sid, { transport, server });
++          },
++        });
++        transport.onclose = () => {
++          if (transport.sessionId) {
++            sessions.delete(transport.sessionId);
++          }
++        };
++        await server.connect(transport);
++        await transport.handleRequest(req, res);
++      } catch (err) {
++        console.error('[vision-bridge-mcp] error handling /mcp request:', err);
++        if (!res.headersSent) {
++          res.writeHead(500, { 'Content-Type': 'application/json' });
++          res.end(JSON.stringify({ error: 'Internal server error' }));
++        }
++      }
++      return;
++    }
++
++    res.writeHead(404, { 'Content-Type': 'application/json' });
++    res.end(JSON.stringify({ error: 'Not found. Use /mcp for Streamable HTTP.' }));
++  });
++}
++
++/**
++ * Starts the Streamable HTTP server and installs graceful shutdown handlers.
++ *
++ * @returns {Promise<http.Server>}
++ */
++export async function startHttpServer() {
++  const host = (process.env.SSE_HOST || process.env.MCP_HOST || '0.0.0.0').trim() || '0.0.0.0';
++  const port = Number.parseInt(
++    (process.env.SSE_PORT || process.env.MCP_PORT || '3024').trim(),
++    10,
++  );
++  const httpServer = createHttpServer();
++
++  await new Promise((resolve, reject) => {
++    httpServer.once('error', reject);
++    httpServer.listen(port, host, () => {
++      httpServer.off('error', reject);
++      resolve();
++    });
++  });
++
++  console.error(
++    `[vision-bridge-mcp] ready on http://${host}:${port}/mcp (tools: analyze_image, ocr_image)`,
++  );
++  if (!hasApiKey()) {
++    console.error(
++      '[vision-bridge-mcp] warning: GEMINI_API_KEY is not set — tool calls will fail until ' +
++        'it is configured. Get a free key at https://aistudio.google.com/apikey',
++    );
++  }
++
++  for (const signal of ['SIGTERM', 'SIGINT']) {
++    process.on(signal, () => {
++      httpServer.close(() => {
++        process.exit(0);
++      });
++    });
++  }
++
++  return httpServer;
++}
+diff --git a/src/image-utils.js b/src/image-utils.js
+index 569ead3..e76926f 100644
+--- a/src/image-utils.js
++++ b/src/image-utils.js
+@@ -17,6 +17,105 @@ export const SUPPORTED_EXTENSIONS = Object.freeze({
+   '.heif': 'image/heif',
+ });
+
++const SUPPORTED_MIME_TYPES = new Set(Object.values(SUPPORTED_EXTENSIONS));
++
++function normalizeMimeType(raw) {
++  if (!raw || typeof raw !== 'string') return '';
++  const clean = raw.split(';', 1)[0].trim().toLowerCase();
++  if (clean === 'image/jpg') return 'image/jpeg';
++  return clean;
++}
++
++function assertWithinMaxBytes(sizeBytes, maxBytes, label) {
++  if (sizeBytes === 0) {
++    throw new VisionBridgeError(ErrorCode.READ_ERROR, `"${label}" is empty.`);
++  }
++  if (sizeBytes > maxBytes) {
++    const sizeMb = (sizeBytes / (1024 * 1024)).toFixed(1);
++    const limitMb = (maxBytes / (1024 * 1024)).toFixed(1);
++    throw new VisionBridgeError(
++      ErrorCode.FILE_TOO_LARGE,
++      `"${label}" is ${sizeMb}MB, which exceeds the ${limitMb}MB limit. ` +
++        'Resize/compress the image, or raise VISION_BRIDGE_MAX_IMAGE_MB.',
++    );
++  }
++}
++
++function parseDataUrl(input, maxBytes) {
++  const match = /^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/i.exec(input);
++  if (!match) {
++    throw new VisionBridgeError(
++      ErrorCode.UNSUPPORTED_TYPE,
++      'Invalid data URL. Expected "data:image/<type>;base64,<payload>".',
++    );
++  }
++  const mimeType = normalizeMimeType(match[1]);
++  if (!SUPPORTED_MIME_TYPES.has(mimeType)) {
++    throw new VisionBridgeError(
++      ErrorCode.UNSUPPORTED_TYPE,
++      `Unsupported image MIME type "${mimeType}". Supported types: ${[...SUPPORTED_MIME_TYPES].join(', ')}.`,
++    );
++  }
++  const buffer = Buffer.from(match[2].replace(/\s+/g, ''), 'base64');
++  assertWithinMaxBytes(buffer.length, maxBytes, 'data-url');
++  return {
++    absolutePath: 'data-url',
++    mimeType,
++    base64: buffer.toString('base64'),
++    sizeBytes: buffer.length,
++  };
++}
++
++async function fetchRemoteImage(imageUrl, maxBytes) {
++  let res;
++  try {
++    res = await fetch(imageUrl, {
++      redirect: 'follow',
++      signal: AbortSignal.timeout(30000),
++    });
++  } catch (err) {
++    throw new VisionBridgeError(
++      ErrorCode.READ_ERROR,
++      `Failed to fetch "${imageUrl}": ${err && err.message ? err.message : err}`,
++    );
++  }
++
++  if (!res.ok) {
++    throw new VisionBridgeError(
++      res.status === 404 ? ErrorCode.FILE_NOT_FOUND : ErrorCode.READ_ERROR,
++      `Failed to fetch "${imageUrl}": HTTP ${res.status}`,
++    );
++  }
++
++  const contentLength = Number(res.headers.get('content-length') || '0');
++  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
++    assertWithinMaxBytes(contentLength, maxBytes, imageUrl);
++  }
++
++  const headerMime = normalizeMimeType(res.headers.get('content-type') || '');
++  let mimeType = SUPPORTED_MIME_TYPES.has(headerMime) ? headerMime : '';
++  if (!mimeType) {
++    const pathname = new URL(imageUrl).pathname;
++    const ext = path.extname(pathname).toLowerCase();
++    mimeType = SUPPORTED_EXTENSIONS[ext] || '';
++  }
++  if (!mimeType) {
++    throw new VisionBridgeError(
++      ErrorCode.UNSUPPORTED_TYPE,
++      `Unsupported image type "${headerMime || '(unknown)'}" from "${imageUrl}".`,
++    );
++  }
++
++  const buffer = Buffer.from(await res.arrayBuffer());
++  assertWithinMaxBytes(buffer.length, maxBytes, imageUrl);
++  return {
++    absolutePath: imageUrl,
++    mimeType,
++    base64: buffer.toString('base64'),
++    sizeBytes: buffer.length,
++  };
++}
++
+ /**
+  * Resolves a user-supplied path (absolute or relative) to an absolute path.
+  * Relative paths are resolved against baseDir so results are stable
+@@ -68,6 +167,16 @@ export function detectMimeType(absolutePath) {
+ export async function validateAndReadImage(inputPath, options = {}) {
+   const { maxBytes = Infinity, baseDir = process.cwd() } = options;
+
++  if (typeof inputPath === 'string') {
++    const trimmed = inputPath.trim();
++    if (trimmed.startsWith('data:')) {
++      return parseDataUrl(trimmed, maxBytes);
++    }
++    if (/^https?:\/\//i.test(trimmed)) {
++      return fetchRemoteImage(trimmed, maxBytes);
++    }
++  }
++
+   const absolutePath = resolveImagePath(inputPath, baseDir);
+   const mimeType = detectMimeType(absolutePath);
+
+@@ -95,19 +204,7 @@ export async function validateAndReadImage(inputPath, options = {}) {
+     );
+   }
+
+-  if (stats.size === 0) {
+-    throw new VisionBridgeError(ErrorCode.READ_ERROR, `"${absolutePath}" is empty.`);
+-  }
+-
+-  if (stats.size > maxBytes) {
+-    const sizeMb = (stats.size / (1024 * 1024)).toFixed(1);
+-    const limitMb = (maxBytes / (1024 * 1024)).toFixed(1);
+-    throw new VisionBridgeError(
+-      ErrorCode.FILE_TOO_LARGE,
+-      `"${absolutePath}" is ${sizeMb}MB, which exceeds the ${limitMb}MB limit. ` +
+-        'Resize/compress the image, or raise VISION_BRIDGE_MAX_IMAGE_MB.',
+-    );
+-  }
++  assertWithinMaxBytes(stats.size, maxBytes, absolutePath);
+
+   let buffer;
+   try {
+diff --git a/src/index.js b/src/index.js
+index fca307b..60a6ed3 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -3,20 +3,32 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+
+ import { createServer } from './server.js';
+ import { hasApiKey } from './config.js';
++import { getTransport, startHttpServer } from './http-transport.js';
+
+ async function main() {
+-  const server = createServer();
+-  const transport = new StdioServerTransport();
+-  await server.connect(transport);
++  const mode = getTransport();
++  if (mode === 'stdio') {
++    const server = createServer();
++    const transport = new StdioServerTransport();
++    await server.connect(transport);
+
+-  // stdout is reserved for JSON-RPC frames — all logging must go to stderr.
+-  console.error('[vision-bridge-mcp] ready on stdio (tools: analyze_image, ocr_image)');
+-  if (!hasApiKey()) {
+-    console.error(
+-      '[vision-bridge-mcp] warning: GEMINI_API_KEY is not set — tool calls will fail until ' +
+-        'it is configured. Get a free key at https://aistudio.google.com/apikey',
+-    );
++    // stdout is reserved for JSON-RPC frames — all logging must go to stderr.
++    console.error('[vision-bridge-mcp] ready on stdio (tools: analyze_image, ocr_image)');
++    if (!hasApiKey()) {
++      console.error(
++        '[vision-bridge-mcp] warning: GEMINI_API_KEY is not set — tool calls will fail until ' +
++          'it is configured. Get a free key at https://aistudio.google.com/apikey',
++      );
++    }
++    return;
+   }
++
++  if (mode === 'streamable-http' || mode === 'http') {
++    await startHttpServer();
++    return;
++  }
++
++  throw new Error(`Unsupported MCP_TRANSPORT "${mode}" (expected stdio or streamable-http).`);
+ }
+
+ main().catch((err) => {
+diff --git a/src/server.js b/src/server.js
+index 98b5025..3b82916 100644
+--- a/src/server.js
++++ b/src/server.js
+@@ -37,8 +37,8 @@ export function createServer() {
+       image_path: z
+         .string()
+         .describe(
+-          'Path to a local image file (absolute, or relative to the directory OpenCode ' +
+-            'was started in). Supports PNG, JPEG, WEBP, GIF, HEIC/HEIF.',
++          'Local file path, http(s):// image URL, or data:image/...;base64,... URL. ' +
++            'Supports PNG, JPEG, WEBP, GIF, HEIC/HEIF.',
+         ),
+       prompt: z
+         .string()
+@@ -58,8 +58,8 @@ export function createServer() {
+       image_path: z
+         .string()
+         .describe(
+-          'Path to a local image file to extract text from (absolute, or relative to the ' +
+-            'directory OpenCode was started in). Supports PNG, JPEG, WEBP, GIF, HEIC/HEIF.',
++          'Local file path, http(s):// image URL, or data:image/...;base64,... URL to ' +
++            'extract text from. Supports PNG, JPEG, WEBP, GIF, HEIC/HEIF.',
+         ),
+     },
+     async ({ image_path: imagePath }) => runVisionTool({ imagePath, prompt: OCR_PROMPT }),
+diff --git a/test/http-transport.test.js b/test/http-transport.test.js
+new file mode 100644
+index 0000000..b05b142
+--- /dev/null
++++ b/test/http-transport.test.js
+@@ -0,0 +1,157 @@
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import http from 'node:http';
++
++import { validateAndReadImage } from '../src/image-utils.js';
++import { ErrorCode, VisionBridgeError } from '../src/errors.js';
++import { createHttpServer, getTransport } from '../src/http-transport.js';
++
++const FAKE_PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
++
++function parseMcpBody(text) {
++  const trimmed = text.trim();
++  if (trimmed.startsWith('{')) return JSON.parse(trimmed);
++  for (const line of trimmed.split('\n')) {
++    if (line.startsWith('data: ')) {
++      return JSON.parse(line.slice(6));
++    }
++  }
++  throw new Error(`Unexpected MCP body: ${trimmed}`);
++}
++
++test('getTransport defaults to stdio and normalizes case', () => {
++  assert.equal(getTransport({}), 'stdio');
++  assert.equal(getTransport({ MCP_TRANSPORT: ' Streamable-HTTP ' }), 'streamable-http');
++});
++
++test('validateAndReadImage reads data:image/...;base64,... URLs and checks MIME/size', async () => {
++  const dataUrl = `data:image/png;base64,${FAKE_PNG.toString('base64')}`;
++  const res = await validateAndReadImage(dataUrl);
++  assert.equal(res.mimeType, 'image/png');
++  assert.equal(res.sizeBytes, FAKE_PNG.length);
++  assert.equal(Buffer.from(res.base64, 'base64').compare(FAKE_PNG), 0);
++
++  await assert.rejects(
++    () => validateAndReadImage('data:text/plain;base64,SGVsbG8='),
++    (err) => err instanceof VisionBridgeError && err.code === ErrorCode.UNSUPPORTED_TYPE,
++  );
++
++  await assert.rejects(
++    () => validateAndReadImage(dataUrl, { maxBytes: 4 }),
++    (err) => err instanceof VisionBridgeError && err.code === ErrorCode.FILE_TOO_LARGE,
++  );
++});
++
++test('validateAndReadImage fetches http:// image URLs and enforces size/MIME/status', async () => {
++  const srv = http.createServer((req, res) => {
++    if (req.url === '/ok.png') {
++      res.writeHead(200, { 'Content-Type': 'image/png' });
++      res.end(FAKE_PNG);
++      return;
++    }
++    if (req.url === '/bad.txt') {
++      res.writeHead(200, { 'Content-Type': 'text/plain' });
++      res.end('not an image');
++      return;
++    }
++    res.writeHead(404);
++    res.end('missing');
++  });
++
++  await new Promise((resolve) => srv.listen(0, '127.0.0.1', resolve));
++  const { port } = srv.address();
++  try {
++    const ok = await validateAndReadImage(`http://127.0.0.1:${port}/ok.png`);
++    assert.equal(ok.mimeType, 'image/png');
++    assert.equal(ok.sizeBytes, FAKE_PNG.length);
++
++    await assert.rejects(
++      () => validateAndReadImage(`http://127.0.0.1:${port}/missing.png`),
++      (err) => err instanceof VisionBridgeError && err.code === ErrorCode.FILE_NOT_FOUND,
++    );
++
++    await assert.rejects(
++      () => validateAndReadImage(`http://127.0.0.1:${port}/bad.txt`),
++      (err) => err instanceof VisionBridgeError && err.code === ErrorCode.UNSUPPORTED_TYPE,
++    );
++  } finally {
++    await new Promise((resolve) => srv.close(resolve));
++  }
++});
++
++test('Streamable HTTP serves /health, /healthz, and /mcp (initialize, tools/list, tools/call)', async () => {
++  const prevKey = process.env.GEMINI_API_KEY;
++  delete process.env.GEMINI_API_KEY;
++
++  const srv = createHttpServer({ stateless: true });
++  await new Promise((resolve) => srv.listen(0, '127.0.0.1', resolve));
++  const { port } = srv.address();
++  const base = `http://127.0.0.1:${port}`;
++  const headers = {
++    'Content-Type': 'application/json',
++    Accept: 'application/json, text/event-stream',
++  };
++
++  try {
++    for (const p of ['/health', '/healthz']) {
++      const h = await fetch(`${base}${p}`);
++      assert.equal(h.status, 200);
++      const body = await h.json();
++      assert.equal(body.status, 'ok');
++      assert.equal(body.transport, 'streamable-http');
++      assert.equal(body.gemini_key_configured, false);
++    }
++
++    const init = await fetch(`${base}/mcp`, {
++      method: 'POST',
++      headers,
++      body: JSON.stringify({
++        jsonrpc: '2.0',
++        id: 1,
++        method: 'initialize',
++        params: {
++          protocolVersion: '2025-03-26',
++          capabilities: {},
++          clientInfo: { name: 'test', version: '1.0' },
++        },
++      }),
++    });
++    assert.equal(init.status, 200);
++    const initJson = parseMcpBody(await init.text());
++    assert.equal(initJson.result.serverInfo.name, 'vision-bridge-mcp');
++
++    const notif = await fetch(`${base}/mcp`, {
++      method: 'POST',
++      headers,
++      body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }),
++    });
++    assert.equal(notif.status, 202);
++
++    const list = await fetch(`${base}/mcp`, {
++      method: 'POST',
++      headers,
++      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }),
++    });
++    assert.equal(list.status, 200);
++    const names = parseMcpBody(await list.text()).result.tools.map((t) => t.name);
++    assert.deepEqual(names, ['analyze_image', 'ocr_image']);
++
++    const call = await fetch(`${base}/mcp`, {
++      method: 'POST',
++      headers,
++      body: JSON.stringify({
++        jsonrpc: '2.0',
++        id: 3,
++        method: 'tools/call',
++        params: { name: 'ocr_image', arguments: { image_path: 'unused.png' } },
++      }),
++    });
++    assert.equal(call.status, 200);
++    const callJson = parseMcpBody(await call.text());
++    assert.equal(callJson.result.isError, true);
++    assert.match(callJson.result.content[0].text, /MISSING_API_KEY/);
++  } finally {
++    if (prevKey !== undefined) process.env.GEMINI_API_KEY = prevKey;
++    await new Promise((resolve) => srv.close(resolve));
++  }
++});

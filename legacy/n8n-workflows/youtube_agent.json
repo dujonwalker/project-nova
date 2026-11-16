@@ -1,0 +1,135 @@
+{
+  "name": "youtube-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -380
+      ],
+      "id": "609a5dcb-9786-4ce2-a066-2a0fc0365562",
+      "name": "When chat message received",
+      "webhookId": "ed860bad-9562-4295-8fac-63d8b4c6474d"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -680,
+        0
+      ],
+      "id": "ab493a27-4816-4f8b-81ac-0ab9f591bf39",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3021/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        20
+      ],
+      "id": "e0c0e98e-225e-4147-8e0a-1f5991a67813",
+      "name": "get-transcript"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"get the transcript from this YouTube video: https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n  \"reason\": \"The request involves extracting a transcript from a YouTube video, which is the primary function of the YouTube Agent.\",\n  \"selectedAgent\": \"youtube-agent\",\n  \"chatHistory\": []\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -200
+      ],
+      "id": "eaa6d424-cded-461f-a00f-6a5b829f1236",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are a specialized AI assistant that has access to a YouTube transcript extraction tool. Your primary purpose is to help users extract, analyze, and work with transcripts from YouTube videos. You can understand video content without having to watch the videos by accessing their transcripts.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the YouTube transcript extraction tool and capabilities documented below\n- Explain that you can extract, analyze, and work with YouTube video transcripts\n- Offer to help with specific transcript extraction or video content analysis tasks\n\n## Your Capabilities\n\n- Extract transcripts from any YouTube video using the video ID or full URL\n- Work with transcripts in different languages (defaulting to English)\n- Include or exclude timestamps in transcripts based on user preferences\n- Analyze the content of transcripts for key points, summaries, or specific information\n- Answer questions about the content of YouTube videos based on their transcripts\n- Create summaries of YouTube video content based on transcript analysis\n\n## Available Tool\n\nYou have access to a powerful tool for transcript extraction:\n\n**YouTube Transcript Tool**\n- Tool name: `get_transcript`\n- Parameters:\n  - `video_id`: The YouTube video ID or complete URL (required)\n  - `with_timestamps`: Boolean (true/false) to include timestamps (default: false)\n  - `language`: Language code for the transcript (default: \"en\" for English)\n\n## How to Interact\n\n1. When a user asks about a YouTube video, always extract the video ID or URL from their request\n2. If a user provides a full YouTube URL, you can use it directly or extract the video ID\n3. Call the transcript tool with the appropriate parameters\n4. Process the transcript based on the user's request\n5. If the transcript cannot be extracted, inform the user and suggest possible reasons (private video, no captions, etc.)\n\n## Example Interactions\n\n- When asked to summarize a video: Extract the transcript without timestamps and create a concise summary\n- When asked about specific information: Extract the transcript and search for relevant sections\n- When asked to provide a full transcript: Extract the complete transcript with or without timestamps as requested\n- When asked to analyze speaker patterns: Extract the transcript with timestamps to analyze speaking patterns\n\n## Response Format\n\n- Keep your responses clear, concise, and directly related to the user's query\n- When providing transcript excerpts, format them clearly\n- If timestamps are included, maintain their alignment with the text\n- For summaries or analyses, structure information with appropriate headings and bullet points\n- When answering questions about content, cite specific parts of the transcript\n\n## Limitations\n\n- You can only access the transcript, not the audio or visual content of videos\n- Not all videos have available transcripts (private videos, no captions)\n- Some transcripts may contain errors, especially for videos with poor audio quality\n- Auto-generated transcripts may not distinguish between different speakers\n\nRemember to be helpful, accurate, and informative when assisting users with YouTube video transcripts. Always prioritize the user's specific request and provide value through your transcript analysis capabilities.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -640,
+        -200
+      ],
+      "id": "f98fc497-21a5-4d1b-9869-d3519c694e0a",
+      "name": "youtube-agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "youtube-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-transcript": {
+      "ai_tool": [
+        [
+          {
+            "node": "youtube-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "youtube-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "43d2b5c9-aed2-4bff-9701-08bf25e6a8da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "EL2TabuIdJTKT9d8",
+  "tags": []
+}

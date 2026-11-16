@@ -1,0 +1,26 @@
+services:
+  triliumnext-mcp:
+    image: ghcr.io/perfectra1n/triliumnext-mcp:0.3.2
+    container_name: triliumnext-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3005}:${SSE_PORT:-3005}"
+    environment:
+      - TRILIUM_URL=${TRILIUM_URL:-http://127.0.0.1:8084/etapi}
+      - TRILIUM_TOKEN=${TRILIUM_TOKEN}
+      - TRILIUM_TRANSPORT=http
+      - TRILIUM_HTTP_PORT=${SSE_PORT:-3005}
+      - TRILIUM_GATEWAY_AUTH=none
+      - TRILIUM_ALLOW_PRIVATE_URLS=true
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:${SSE_PORT:-3005}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

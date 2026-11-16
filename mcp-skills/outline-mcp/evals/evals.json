@@ -1,0 +1,36 @@
+{
+  "skill_name": "outline-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find our draft 'Disaster Recovery' doc in Outline, read only the Networking section without loading the entire 900-line runbook, and add a Mermaid diagram there.",
+      "expected_output": "Search with search_documents passing status_filter=['draft', 'published', 'archived'], locate headings via get_document_toc, read the target section via read_document_section or search_document_content, and insert a ```mermaidjs fenced block via edit_document.",
+      "files": [],
+      "assertions": [
+        "Passes status_filter including 'draft' to search_documents so draft documents are not missed",
+        "Uses get_document_toc + read_document_section / search_document_content / sliced read_document instead of dumping the full document",
+        "Uses ```mermaidjs (not ```mermaid) for the Outline Mermaid diagram fence"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Rewrite four scattered sections of a large Outline architecture doc without firing four separate Outline API writes or losing track of intermediate edits.",
+      "expected_output": "Stage intermediate batches via edit_document(..., save=False) and flush once with save=True (noting staged edits are server-memory only and export_document bypasses staging).",
+      "files": [],
+      "assertions": [
+        "Uses edit_document with save=False to stage edits and save=True on the final batch",
+        "Notes that staged edits reside in server memory only and must be flushed before restart"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Move 15 onboarding documents in Outline to the Archive collection and deploy mcp-outline in HTTP mode where delete tools and AI Q&A are turned off.",
+      "expected_output": "Use batch_move_documents or batch_archive_documents instead of single-document loops, and configure MCP_TRANSPORT=streamable-http (or sse), MCP_HOST=0.0.0.0, OUTLINE_DISABLE_DELETE=true, and OUTLINE_DISABLE_AI_TOOLS=true.",
+      "files": [],
+      "assertions": [
+        "Uses batch_move_documents or batch_archive_documents for multi-document operations",
+        "Sets OUTLINE_DISABLE_DELETE=true and OUTLINE_DISABLE_AI_TOOLS=true (plus MCP_TRANSPORT)"
+      ]
+    }
+  ]
+}

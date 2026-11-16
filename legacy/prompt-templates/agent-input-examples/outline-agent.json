@@ -1,0 +1,5 @@
+{
+  "input": "update our team documentation about the new process",
+  "reason": "The request involves managing team documentation, which is the primary purpose of the Outline Agent that specializes in collaborative knowledge bases.",
+  "selectedAgent": "outline-agent"
+}

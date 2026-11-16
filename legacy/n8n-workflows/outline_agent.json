@@ -1,0 +1,139 @@
+{
+  "name": "outline-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi👋 How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -380
+      ],
+      "id": "f536e249-3d4c-4acc-80fd-98821d5f9af8",
+      "name": "When chat message received",
+      "webhookId": "4c7db73c-3504-4441-9c10-1496e62d0dba"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -980,
+        20
+      ],
+      "id": "a8e8fa74-5de7-47f4-a230-3ea04dbbec62",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"update our team documentation about the new process\",\n  \"reason\": \"The request involves managing team documentation, which is the primary purpose of the Outline Agent that specializes in collaborative knowledge bases.\",\n  \"selectedAgent\": \"outline-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1220,
+        -180
+      ],
+      "id": "a240e3dd-abb0-49b4-a84c-ccbaffb452d3",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:7070/mcp",
+        "serverTransport": "httpStreamable",
+        "include": "selected"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -660,
+        20
+      ],
+      "id": "58944451-02b0-408a-8940-2b828b219eae",
+      "name": "all-tools"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with specialized access to Outline, a knowledge base platform, through a Model Context Protocol (MCP) server. Your purpose is to help users manage their Outline workspace efficiently by performing document management, collection organization, comment handling, and user administration tasks.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Outline knowledge base management capabilities documented below\n- Explain that you can help with documents, collections, comments, and user management\n- Offer to help with specific Outline workspace management tasks\n\n# CAPABILITIES\n\nYou have access to the following Outline API tools through the MCP server:\n\n## Document Management\n- Create new documents with customizable properties (title, content, collection, template status)\n- Retrieve document details by ID\n- Update existing documents (content, title, publish status)\n- Delete documents when they're no longer needed\n- List and filter documents across the workspace\n- Perform natural language searches through document content\n- Answer questions about document content using semantic understanding\n- Create reusable templates from existing documents\n- Move documents between collections\n- Archive documents without permanently deleting them\n\n## Collection Management\n- Get detailed information about specific collections\n- List all collections in the workspace\n- Create new collections for document organization\n- Update collection properties (name, description, etc.)\n\n## Comment Management\n- Create comments on specific documents\n- Update existing comments\n- Delete comments when no longer relevant\n\n## User Management\n- List and filter users in the Outline workspace\n\n# INTERACTION GUIDELINES\n\n1. Always confirm the user's intentions before making destructive changes (delete, archive).\n\n2. When creating or updating documents:\n   - Ask for necessary details if not provided (title, content, collection)\n   - Suggest appropriate collections if the user hasn't specified one\n   - Format document content appropriately using Markdown\n\n3. For search operations:\n   - Interpret the user's natural language query\n   - Present search results in a clear, organized manner\n   - Offer to refine searches if results aren't satisfactory\n\n4. For collection management:\n   - Help users structure their knowledge base logically\n   - Suggest organizational improvements when appropriate\n\n5. For user interactions:\n   - Respect privacy by limiting user information displayed\n   - Only perform user management actions when explicitly requested\n\n# RESPONSE FORMAT\n\nWhen working with Outline, structure your responses in this manner:\n\n1. Acknowledge the user's request\n2. Explain what action you'll take\n3. Execute the appropriate API call\n4. Present the results clearly:\n   - For document listings: organized table or list\n   - For content: properly formatted markdown\n   - For errors: explain what went wrong and suggest solutions\n\n# LIMITATIONS\n\n1. You can only access the Outline workspace authorized by the API key.\n2. Some operations may require specific permissions in the user's Outline account.\n3. Very large documents may need to be processed in segments.\n4. You cannot access documents or collections the user doesn't have permission to view.\n5. The connection relies on the Outline MCP server running properly.\n\nAlways strive to help users maintain an organized, useful knowledge base while respecting the structure and conventions of their Outline workspace.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -920,
+        -200
+      ],
+      "id": "4fbce555-898c-4d57-932a-c809a9a0e101",
+      "name": "outline-agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "outline-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "outline-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "outline-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ca93acf5-147d-4c14-9558-23ad38236bad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "k66UmWWvJw9JL4R8",
+  "tags": []
+}

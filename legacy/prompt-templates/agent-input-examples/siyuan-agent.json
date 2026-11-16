@@ -1,0 +1,5 @@
+{
+  "input": "organize my SiYuan notebooks by project",
+  "reason": "The request specifically involves organizing SiYuan notebooks, which is a core capability of the SiYuan Agent.",
+  "selectedAgent": "siyuan-agent"
+}

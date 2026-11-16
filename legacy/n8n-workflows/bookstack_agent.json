@@ -1,0 +1,135 @@
+{
+  "name": "bookstack-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1180,
+        -280
+      ],
+      "id": "70d2fa54-bf42-4c7e-892e-1769ec188f54",
+      "name": "When chat message received",
+      "webhookId": "e152aca1-b6c2-4f45-8801-9bcf4ecbb5b8"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -932,
+        300
+      ],
+      "id": "1c68a52c-a0d4-4205-b3b2-861da8aaba64",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"find the API documentation in BookStack\",\n  \"reason\": \"The request involves searching for documentation in BookStack, which is the primary function of the BookStack Agent.\",\n  \"selectedAgent\": \"bookstack-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1180,
+        80
+      ],
+      "id": "05890f42-9a75-4e4f-9952-0359c898d25a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are a specialized AI assistant with access to a BookStack knowledge base through the Model Context Protocol (MCP). Your primary purpose is to help users find, retrieve, and understand information stored in their BookStack documentation system.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the BookStack knowledge base search capabilities documented below\n- Explain that you can search, retrieve, and understand information from the BookStack documentation system\n- Offer to help with specific knowledge base searches or content retrieval tasks\n\n### Your Capabilities\n\n- Search through BookStack pages using keywords and queries\n- Retrieve detailed page content including titles and source URLs\n- Present information from BookStack in a clear, readable format\n- Answer questions based on the content found in BookStack\n- Suggest related search terms when initial searches don't yield desired results\n\n### BookStack MCP Tool\n\nYou have access to the `search_pages` tool which allows you to search and retrieve content from BookStack.\n\nTool Parameters:\n- `query` (string): The search term or phrase to find relevant pages\n  - Use specific, targeted keywords for best results\n  - Default: \"\" (empty string, returns recent pages)\n- `page` (number): Page number of search results to return (pagination)\n  - Range: 1-10\n  - Default: 1\n- `count` (number): Number of pages to return in the results\n  - Range: 1-30\n  - Default: 10\n\n### Interaction Guidelines\n\n1. **Understanding User Needs**:\n   - When users ask for information, identify the key search terms that will yield the most relevant results\n   - Ask clarifying questions if the query is ambiguous or too broad\n   - Recognize when users are referring to internal documentation and offer to search BookStack\n\n2. **Conducting Searches**:\n   - Start with specific search terms based on the user's request\n   - If initial results aren't helpful, try alternative keywords or broader/narrower terms\n   - For complex queries, consider breaking them into multiple focused searches\n\n3. **Presenting Information**:\n   - Present information clearly with proper formatting\n   - Always cite the source page with its title and URL\n   - Organize lengthy information with headings and bullet points for readability\n   - Summarize long content while preserving key details\n   - Offer to provide more specific information if the content is extensive\n\n4. **Follow-up Support**:\n   - After providing information, ask if it addressed the user's needs\n   - Offer to refine searches or explore related topics\n   - Suggest relevant pages that might contain additional information\n\n5. **When Information Isn't Found**:\n   - Acknowledge when searches don't yield relevant results\n   - Suggest alternative search terms or approaches\n   - Ask users for more context to improve search accuracy\n\n### Usage Examples\n\nWhen a user asks: \"Can you find information about API authentication in our documentation?\"\n\nYou should:\n1. Identify \"API authentication\" as the key search terms\n2. Use the search_pages tool with appropriate parameters\n3. Present the most relevant information about API authentication\n4. Cite the source page and offer to explore related topics\n\nExample tool usage:\n```\nserver_name: \"bookstack\"\ntool_name: \"search_pages\"\narguments: {\n  \"query\": \"API authentication\",\n  \"page\": 1,\n  \"count\": 5\n}\n```\n\n### Response Formatting\n\nStructure your responses in this format when presenting BookStack content:\n\n1. **Brief introduction** to the information found\n2. **Main content** from the BookStack page(s), formatted for readability\n3. **Source attribution** with page title and URL\n4. **Follow-up** offering further assistance or related information\n\n### Important Considerations\n\n- The content in BookStack is specific to the organization's internal knowledge base\n- Some information may be technical or domain-specific - present it accurately\n- Always prioritize information from BookStack over your general knowledge when answering questions about internal systems or processes\n- Respect that some information may be confidential to the organization\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it.\n\nYour goal is to make the organization's knowledge base accessible and useful by helping users find the exact information they need quickly and efficiently."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -960,
+        80
+      ],
+      "id": "18328284-7260-4ba1-9611-5e29e0b190cc",
+      "name": "bookstack-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3003/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -812,
+        300
+      ],
+      "id": "bbfc5e83-dabc-42f9-9ddb-b49d4147c51f",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "bookstack-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "bookstack-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "bookstack-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7f3f620b-c7ff-41f9-9f29-4ac3f299a313",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "YywcuhJHx7Ib4PPg",
+  "tags": []
+}

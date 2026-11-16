@@ -1,0 +1,40 @@
+{
+  "skill_name": "komodo-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "name": "triage-failed-deploy",
+      "prompt": "Check why my 'api' Komodo stack failed its latest deploy and inspect its container logs.",
+      "expected_output": "Calls komodo_health_check or komodo_stack_list/komodo_stack_info, checks komodo_update_list and komodo_update_info for the failed deploy stage, and inspects container logs via komodo_container_logs (fetching any ephemeral:// resource link if offloaded).",
+      "files": [],
+      "assertions": [
+        "Uses komodo_update_list and komodo_update_info to diagnose the deploy failure",
+        "Uses komodo_container_logs (and handles ephemeral:// resource links or inline_full=true)",
+        "Does not attempt shell scripts or raw curl calls when komodo-mcp tools are available"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "build-and-deploy-stack",
+      "prompt": "Trigger my 'webapp' Komodo build, wait/verify its build logs, and deploy the 'webapp' stack.",
+      "expected_output": "Checks komodo_build_list / komodo_build_info, triggers build via komodo_build_action(action='run'), inspects komodo_update_info / komodo_build_logs, then deploys via komodo_stack_action(action='deploy') and verifies container status.",
+      "files": [],
+      "assertions": [
+        "Calls komodo_build_action with run and verifies completion via komodo_update_info or komodo_build_logs",
+        "Deploys stack via komodo_stack_action instead of creating an ad-hoc deployment",
+        "Respects pagination (_meta.page.next_cursor) if listing many resources"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "read-only-http-mode-explanation",
+      "prompt": "Why are komodo_stack_action, komodo_exec, and komodo_stack_apply missing from tools/list when MCP_AUTH_ENABLED=false over HTTP?",
+      "expected_output": "Explains that open HTTP/HTTPS mode (MCP_AUTH_ENABLED=false) enforces a strict read-only invariant granting only komodo:read scope, hiding and rejecting all write/operate/admin/exec tools unless per-user HTTP auth is enabled or stdio is used.",
+      "files": [],
+      "assertions": [
+        "Identifies the open-HTTP read-only invariant when MCP_AUTH_ENABLED=false",
+        "Also notes MCP_TOOLS_ALLOWED_CATEGORIES / EXCLUDED_CATEGORIES / EXCLUDED_TOOLS as potential server-side pruning causes"
+      ]
+    }
+  ]
+}

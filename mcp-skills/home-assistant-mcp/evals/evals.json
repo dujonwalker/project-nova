@@ -1,0 +1,37 @@
+{
+  "skill_name": "home-assistant-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find all living room lights in Home Assistant, check their current states, and create a new automation that turns them on at sunset with best-practice validation.",
+      "expected_output": "Resolve exact entities via ha_search / ha_list_floors_areas / ha_get_state, consult ha_get_skill_guide before writing the automation, pass MandatoryBPS=false afterward if appropriate, and create the automation via ha_config_set_automation.",
+      "files": [],
+      "assertions": [
+        "Resolves entity/area IDs with ha_search, ha_get_overview, or ha_list_floors_areas before creating the automation",
+        "Consults ha_get_skill_guide before calling ha_config_set_automation",
+        "Uses ha_config_set_automation (not raw YAML or external scripts)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We connected our MCP client to /mcp/catalog/search so we only see a handful of tools, and we need to inspect a dashboard layout and trigger an automation trace debug.",
+      "expected_output": "Use ha_search_tools(query='...') with English keywords to locate ha_config_get_dashboard and ha_get_automation_traces, then fetch full schemas via ha_search_tools(tools=[...]) before invoking them directly or sequentially through ha_call_read_tool.",
+      "files": [],
+      "assertions": [
+        "Explains calling ha_search_tools(query=...) with English keywords",
+        "Explains fetching full schemas via ha_search_tools(tools=[...]) before calling",
+        "Notes that proxy tools like ha_call_read_tool must be called sequentially with top-level name and arguments"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Rename media_player.old_speaker to media_player.kitchen_speaker in Home Assistant, and explain why ha_config_set_yaml returned a disabled error.",
+      "expected_output": "Rename the entity using ha_set_entity (underscores required, no hyphens) rather than external WebSocket scripts, and explain that ha_config_set_yaml is disabled by default unless ENABLE_YAML_CONFIG_EDITING=true is set on the server.",
+      "files": [],
+      "assertions": [
+        "Uses ha_set_entity for entity ID/friendly-name updates (and notes underscore rule)",
+        "Explains that ha_config_set_yaml requires ENABLE_YAML_CONFIG_EDITING=true"
+      ]
+    }
+  ]
+}

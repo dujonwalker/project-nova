@@ -1,0 +1,37 @@
+{
+  "skill_name": "playwright-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Open https://example.com/login in a browser, inspect the form fields via accessibility snapshot, sign in, wait for the dashboard heading, and check for any console errors or failed API requests.",
+      "expected_output": "Uses browser_navigate, browser_snapshot (or browser_find), browser_fill_form/browser_type + browser_click with snapshot target refs, browser_wait_for, browser_console_messages, and browser_network_requests (then browser_network_request for failures) without inventing CSS selectors or running ad-hoc shell scripts.",
+      "assertions": [
+        "Navigates with browser_navigate",
+        "Inspects accessibility tree with browser_snapshot or browser_find before interacting",
+        "Passes snapshot target refs to browser_type, browser_fill_form, or browser_click",
+        "Uses browser_wait_for before verifying post-login state",
+        "Checks errors via browser_console_messages and browser_network_requests"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Test a two-user chat app in the same Playwright MCP session by opening two isolated browser tabs so their cookies do not collide, sending a message from user A, and verifying user B receives it.",
+      "expected_output": "Opens distinct isolated contexts via browser_tabs(action='new', isolatedContext=...), switches between tabs with browser_tabs(action='select', index=...), snapshots each tab independently, sends the message in tab A, waits and re-snapshots tab B to verify receipt.",
+      "assertions": [
+        "Uses browser_tabs with action 'new' and distinct isolatedContext values",
+        "Switches tabs with browser_tabs action 'select'",
+        "Re-snapshots after DOM changes instead of reusing stale refs across tabs"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The page shows a canvas-based chart without accessibility nodes, and I also need to export the report view as a PDF.",
+      "expected_output": "Takes a screenshot with browser_take_screenshot to inspect coordinates, gates coordinate mouse clicks (browser_mouse_click_xy) on --caps=vision and PDF export (browser_pdf_save) on --caps=pdf without claiming unavailable opt-in tools succeed if not enabled.",
+      "assertions": [
+        "Identifies browser_mouse_click_xy as requiring --caps=vision",
+        "Identifies browser_pdf_save as requiring --caps=pdf",
+        "Uses browser_take_screenshot before estimating canvas coordinates"
+      ]
+    }
+  ]
+}

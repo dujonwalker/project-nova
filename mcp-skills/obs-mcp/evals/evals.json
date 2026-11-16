@@ -1,0 +1,34 @@
+{
+  "skill_name": "obs-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "My microphone sounds noisy on stream and picks up room hum. Clean up my 'Mic/Aux' input in OBS Studio.",
+      "expected_output": "Verifies input name via get_input_list if unsure, calls clean_audio_input(input_name='Mic/Aux') rather than manually assembling raw filters, and reports created/skipped filter stages (Noise Gate -> Noise Suppression -> Compressor) plus tuning hints.",
+      "assertions": [
+        "Verifies or respects exact case-sensitive input name via get_input_list",
+        "Uses composite clean_audio_input instead of manually chaining three raw CreateSourceFilter calls",
+        "Notes filter order (Gate -> Suppression -> Compressor) and threshold adjustment guidance"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Why is OBS dropping frames during my recording/stream right now?",
+      "expected_output": "Calls diagnose_av_health() to gather render skip %, output skip %, congestion, reconnect status, and free recording disk space in one call, and maps findings to GPU/scene, encoder, network bitrate, or storage bottlenecks.",
+      "assertions": [
+        "Calls diagnose_av_health in one shot rather than forcing manual ratio math",
+        "Distinguishes render skips vs encoder skips vs network congestion vs low disk space"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Stage the 'Gameplay' scene in Studio Mode preview, check how it looks, and then transition it live.",
+      "expected_output": "Calls get_scene_list to confirm 'Gameplay', ensures Studio Mode is enabled via get_studio_mode_enabled / set_studio_mode_enabled(True), calls set_current_preview_scene('Gameplay'), optionally captures a screenshot via get_source_screenshot, and calls trigger_studio_mode_transition.",
+      "assertions": [
+        "Checks scene list / Studio Mode state before switching",
+        "Uses set_current_preview_scene before trigger_studio_mode_transition",
+        "Does not jump straight to set_current_program_scene when staging in Studio Mode"
+      ]
+    }
+  ]
+}

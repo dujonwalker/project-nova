@@ -1,0 +1,30 @@
+services:
+  reaper-qa-mcp:
+    build:
+      context: ..
+    container_name: reaper-qa-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3017}:${SSE_PORT:-3017}"
+    environment:
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-streamable-http}
+      - SSE_HOST=${SSE_HOST:-0.0.0.0}
+      - SSE_PORT=${SSE_PORT:-3017}
+      - MCP_STATELESS_HTTP=${MCP_STATELESS_HTTP:-true}
+      - MCP_JSON_RESPONSE=${MCP_JSON_RESPONSE:-false}
+      - REAPER_PROJECTS_DIR=${REAPER_PROJECTS_DIR:-/data/Documents/REAPER Projects}
+      - REAPER_RESOURCE_PATH=${REAPER_RESOURCE_PATH:-/data/.config/REAPER}
+    volumes:
+      - ${REAPER_HOME_HOST_DIR:-/data}:/data:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${SSE_PORT:-3017}/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - reaper-qa-mcp-network
+
+networks:
+  reaper-qa-mcp-network:
+    driver: bridge

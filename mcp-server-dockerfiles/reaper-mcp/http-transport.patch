@@ -1,0 +1,100 @@
+diff --git a/reaper_mcp/main.py b/reaper_mcp/main.py
+index 63ecaad..a4c2b75 100644
+--- a/reaper_mcp/main.py
++++ b/reaper_mcp/main.py
+@@ -33,14 +33,45 @@ for _stream in (sys.stdout, sys.stdin, sys.stderr):
+         _reconfigure(encoding="utf-8")
+
+ from mcp.server.fastmcp import FastMCP
++from mcp.server.transport_security import TransportSecuritySettings
++from starlette.responses import JSONResponse
+
+ from reaper_mcp.instructions import load_instructions
+ from reaper_mcp.reaper_client import ReaperClient
+ from reaper_mcp.tool_registry import describe_profile, register_all_tools, resolve_profile
+ from reaper_mcp_shared.constants import Connection, ensure_private_dir
+
++
++def _env_bool(name: str, default: bool) -> bool:
++    raw = os.environ.get(name)
++    if raw is None or not raw.strip():
++        return default
++    return raw.strip().lower() in ("1", "true", "yes", "on")
++
++
+ _active_profile = resolve_profile()
+-mcp = FastMCP("ReaperMCP", instructions=load_instructions(_active_profile.instruction_packs))
++mcp = FastMCP(
++    "ReaperMCP",
++    instructions=load_instructions(_active_profile.instruction_packs),
++    host=os.environ.get("SSE_HOST", "0.0.0.0").strip() or "0.0.0.0",
++    port=int((os.environ.get("SSE_PORT") or "3015").strip()),
++    stateless_http=_env_bool("MCP_STATELESS_HTTP", True),
++    json_response=_env_bool("MCP_JSON_RESPONSE", False),
++    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
++)
++
++
++@mcp.custom_route("/health", methods=["GET"])
++@mcp.custom_route("/healthz", methods=["GET"])
++async def health(_request):
++    return JSONResponse({
++        "status": "ok",
++        "server": "reaper-mcp",
++        "version": "0.8.3",
++        "profile": _active_profile.name,
++        "ipc_dir": Connection.IPC_DIR,
++    })
++
+ client = ReaperClient()
+
+ register_all_tools(mcp, _active_profile)
+@@ -180,9 +211,11 @@ def main():
+             print(f"Tools ({len(info.tools)}): {', '.join(info.tools)}")
+         sys.exit(0)
+
+-    _claim_generation(os.getppid())
+-    threading.Thread(target=_watch_parent, daemon=True).start()
+-    mcp.run(transport="stdio")
++    transport = os.environ.get("MCP_TRANSPORT", "streamable-http").strip() or "streamable-http"
++    if transport == "stdio":
++        _claim_generation(os.getppid())
++        threading.Thread(target=_watch_parent, daemon=True).start()
++    mcp.run(transport=transport)
+
+
+ if __name__ == "__main__":
+diff --git a/reaper_mcp_shared/constants.py b/reaper_mcp_shared/constants.py
+index f18bc3d..0330b06 100644
+--- a/reaper_mcp_shared/constants.py
++++ b/reaper_mcp_shared/constants.py
+@@ -25,6 +25,20 @@ def ensure_private_dir(path: str) -> None:
+     toggles the read-only attribute, not real multi-user ACLs).
+     """
+     os.makedirs(path, exist_ok=True)
++    mode_raw = os.environ.get("REAPER_IPC_DIR_MODE", "").strip()
++    if mode_raw:
++        try:
++            os.chmod(path, int(mode_raw, 8))
++        except (OSError, ValueError):
++            pass
++        return
++    if os.environ.get("REAPER_IPC_SHARED", "").strip().lower() in ("1", "true", "yes", "on"):
++        try:
++            if os.stat(path).st_uid == os.geteuid():
++                os.chmod(path, 0o777)
++        except OSError:
++            pass
++        return
+     try:
+         os.chmod(path, 0o700)
+     except OSError:
+@@ -32,7 +46,7 @@ def ensure_private_dir(path: str) -> None:
+
+
+ class Connection:
+-    IPC_DIR = os.path.join(tempfile.gettempdir(), "reaper_mcp")
++    IPC_DIR = os.environ.get("REAPER_IPC_DIR", "").strip() or os.path.join(tempfile.gettempdir(), "reaper_mcp")
+     COMMAND_FILE = os.path.join(IPC_DIR, "command.json")
+     RESPONSE_FILE = os.path.join(IPC_DIR, "response.json")
+     COMMAND_TMP = os.path.join(IPC_DIR, "command.tmp")

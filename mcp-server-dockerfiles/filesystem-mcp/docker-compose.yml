@@ -1,0 +1,25 @@
+services:
+  filesystem-mcp:
+    image: nginx:alpine
+    container_name: filesystem-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3022}:${SSE_PORT:-3022}"
+    environment:
+      - SSE_PORT=${SSE_PORT:-3022}
+      - FILESYSTEM_UPSTREAM_URL=${FILESYSTEM_UPSTREAM_URL:-http://127.0.0.1:3022}
+      - NGINX_ENVSUBST_FILTER=^(SSE_PORT|FILESYSTEM_UPSTREAM_URL)$
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${SSE_PORT:-3022}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

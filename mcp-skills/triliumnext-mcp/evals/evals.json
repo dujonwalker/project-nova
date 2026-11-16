@@ -1,0 +1,36 @@
+{
+  "skill_name": "triliumnext-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find my TriliumNext note about 'Kubernetes Ingress', check where it lives in the tree, and rewrite its outdated section using Markdown without accidentally overwriting untouched paragraphs.",
+      "expected_output": "Search with search_notes (using content_preview_chars if disambiguating), read the chosen note with get_note (include_path=true), snapshot first with create_revision, and apply targeted search/replace blocks or a patch via write_note mode='edit' (or replace full Markdown with format='markdown').",
+      "files": [],
+      "assertions": [
+        "Uses search_notes and get_note (with include_path) rather than raw ETAPI HTTP calls",
+        "Snapshots with create_revision before editing or uses write_note mode='edit' for surgical changes",
+        "Shares the returned Trilium note URL"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a TriliumNext Render Note dashboard powered by a frontend JavaScript note and move an existing cloned reference note under a new 'Dashboards' parent.",
+      "expected_output": "Create the frontend script with create_note (type='code', mime='application/javascript;env=frontend'), create the render note (type='render'), wire the renderNote relation with set_attribute (name='renderNote' without '~'), and move the cloned note via organize_note action='move' passing fromParentNoteId.",
+      "files": [],
+      "assertions": [
+        "Wires the renderNote relation using set_attribute (without leading '~') after creating both notes",
+        "Passes fromParentNoteId when calling organize_note action='move' on a cloned note"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We ran triliumnext-mcp with --multi-tenant and also set TRILIUM_URL in Docker Compose, and the container exited on startup. Also why did a body search immediately fail with TRILIUM_BUSY?",
+      "expected_output": "Explain that --multi-tenant forbids startup TRILIUM_URL/TRILIUM_TOKEN so clients supply both via X-Trilium-Url and X-Trilium-Token headers; explain that TRILIUM_BUSY triggers after a request timeout for busyCooldownMs (default 30s) to protect Trilium from concurrent heavy body searches.",
+      "files": [],
+      "assertions": [
+        "Explains that multi-tenant mode rejects startup TRILIUM_URL/TRILIUM_TOKEN and requires X-Trilium-Url + X-Trilium-Token headers",
+        "Explains the TRILIUM_BUSY cooldown behavior (--busy-cooldown, default 30s) and waiting before retrying"
+      ]
+    }
+  ]
+}

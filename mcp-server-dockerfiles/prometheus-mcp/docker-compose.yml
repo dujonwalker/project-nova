@@ -1,0 +1,25 @@
+services:
+  prometheus-mcp:
+    image: ghcr.io/pab1it0/prometheus-mcp-server:1.6.2
+    container_name: prometheus-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3014}:${SSE_PORT:-3014}"
+    environment:
+      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://127.0.0.1:9090}
+      - PROMETHEUS_MCP_SERVER_TRANSPORT=http
+      - PROMETHEUS_MCP_BIND_HOST=0.0.0.0
+      - PROMETHEUS_MCP_BIND_PORT=${SSE_PORT:-3014}
+      - PROMETHEUS_MCP_STATELESS_HTTP=${PROMETHEUS_MCP_STATELESS_HTTP:-true}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SSE_PORT:-3014}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

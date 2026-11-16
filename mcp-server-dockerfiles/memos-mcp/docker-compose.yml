@@ -1,0 +1,26 @@
+services:
+  memos-mcp:
+    image: nginx:alpine
+    container_name: memos-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3004}:${SSE_PORT:-3004}"
+    environment:
+      - SSE_PORT=${SSE_PORT:-3004}
+      - MEMOS_UPSTREAM_URL=${MEMOS_UPSTREAM_URL:-http://127.0.0.1:5230}
+      - MEMOS_API_KEY=${MEMOS_API_KEY}
+      - NGINX_ENVSUBST_FILTER=^(SSE_PORT|MEMOS_UPSTREAM_URL|MEMOS_API_KEY)$
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${SSE_PORT:-3004}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

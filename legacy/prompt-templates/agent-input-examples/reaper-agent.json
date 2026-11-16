@@ -1,0 +1,5 @@
+{
+  "input": "add a new track for vocals in my project",
+  "reason": "The request involves creating a new track in REAPER, which is a core capability of the Reaper Agent for audio production.",
+  "selectedAgent": "reaper-agent"
+}

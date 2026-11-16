@@ -1,0 +1,27 @@
+services:
+  youtube-mcp:
+    build:
+      context: .
+    container_name: youtube-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3021}:${SSE_PORT:-3021}"
+    environment:
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - YOUTUBE_TRANSCRIPT_LANG=${YOUTUBE_TRANSCRIPT_LANG:-en}
+      - MCP_TRANSPORT=http
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=${SSE_PORT:-3021}
+      - MCP_STATELESS=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${SSE_PORT:-3021}/ready >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

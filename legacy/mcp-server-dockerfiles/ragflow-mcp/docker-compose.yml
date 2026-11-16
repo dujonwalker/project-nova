@@ -1,0 +1,25 @@
+services:
+  ragflow-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ragflow-mcp-server
+    restart: unless-stopped
+    ports:
+      - "${MCP_SSE_PORT:-3015}:${MCP_SSE_PORT:-3015}"
+    environment:
+      - RAGFLOW_URL=${RAGFLOW_URL}
+      - RAGFLOW_API_KEY=${RAGFLOW_API_KEY}
+      - RAGFLOW_DATASET_ID=${RAGFLOW_DATASET_ID}
+      - RAGFLOW_SIMILARITY_THRESHOLD=${RAGFLOW_SIMILARITY_THRESHOLD:-0.3}
+      - RAGFLOW_VECTOR_SIMILARITY_WEIGHT=${RAGFLOW_VECTOR_SIMILARITY_WEIGHT:-0.5}
+      - RAGFLOW_LIMIT=${RAGFLOW_LIMIT:-5}
+      - MCP_SSE_PORT=${MCP_SSE_PORT:-3015}
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

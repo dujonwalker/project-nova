@@ -1,0 +1,74 @@
+spec_version: "0.1.0"
+name: project-nova
+version: 2.0.0
+description: >
+  Project NOVA is a DIY, agent-agnostic toolkit of Model Context Protocol
+  (MCP) servers. It provides a catalog of 25 focused servers. All 25
+  implementations are included in this repository. Servers use
+  Streamable HTTP at /mcp and can be used independently by compatible
+  clients, harnesses, or direct MCP connections. NOVA does not require a
+  central router, chat application, or orchestration runtime.
+author: Project NOVA maintainers
+license: MIT
+
+skill_bundles:
+  directory: mcp-skills
+  included: 25
+  guide: mcp-skills/README.md
+  coverage_note: >
+    Bundles are available for all 25 servers. Use them directly from the
+    repository or copy selected bundles to a client-supported local skills
+    directory.
+
+catalog:
+  total: 25
+  active: 25
+  transport: streamable-http
+  endpoint_path: /mcp
+  transport_note: >
+    Streamable HTTP at /mcp is the catalog baseline; consult each server
+    README for service-specific transport, port, and deployment caveats.
+  active_servers:
+    - BookStack
+    - Gitea
+    - Forgejo
+    - Karakeep
+    - Memos
+    - Paperless-NGX
+    - Prometheus
+    - TriliumNext
+    - Outline
+    - Home Assistant
+    - Langfuse
+    - YouTube
+    - Blinko
+    - Fetcher
+    - Playwright
+    - Filesystem
+    - OBS
+    - Ableton Live
+    - REAPER
+    - REAPER Project QA
+    - CLI/Shell
+    - Nextcloud
+    - Komodo
+    - SearXNG
+    - Vision Bridge
+
+clients:
+  supported:
+    - Hermes-Agent
+    - llama.cpp WebUI
+    - n8n
+    - any MCP client
+  required: false
+
+compliance:
+  risk_tier: standard
+  supervision:
+    human_in_the_loop: destructive
+    confirmation_required_for:
+      - file deletion
+      - repository changes
+      - device control
+      - external side effects

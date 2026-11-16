@@ -1,0 +1,40 @@
+{
+  "skill_name": "mcp-shell",
+  "evals": [
+    {
+      "id": 1,
+      "name": "shell-exec-diagnostic",
+      "prompt": "Using mcp-shell, run a non-interactive shell command to check Python version, disk space, and search for TODO comments in the workspace.",
+      "expected_output": "Calls shell_exec with a concise, non-interactive command producing bounded output within max_execution_time and max_output_size.",
+      "files": [],
+      "assertions": [
+        "Uses shell_exec when unrestricted mode is active",
+        "Keeps command non-interactive and bounded so it does not exceed max_output_size or max_execution_time",
+        "Does not attempt base64=true for plain UTF-8 text output"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "binary-output-base64",
+      "prompt": "Use mcp-shell to inspect the first 64 raw bytes of a binary file without corrupting UTF-8 output.",
+      "expected_output": "Calls shell_exec with base64=true (or formats output as hex/base64 cleanly) to handle binary stdout safely.",
+      "files": [],
+      "assertions": [
+        "Accounts for binary output safety via base64=true on shell_exec or hex formatting",
+        "Respects working_directory context"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "secure-mode-config-nuance",
+      "prompt": "Explain what happens if MCP_SHELL_ALLOW_UNSAFE=1 is set while pointing MCP_SHELL_SEC_CONFIG_FILE at a YAML file with security.enabled: true, and which limits still apply in shell_exec mode.",
+      "expected_output": "Explains that YAML security.enabled: true overrides MCP_SHELL_ALLOW_UNSAFE=1 back to secure mode, and notes that even when enabled: false + MCP_SHELL_ALLOW_UNSAFE=1 are active, CommandExecutor still enforces max_execution_time, max_output_size, working_directory, and run_as_user.",
+      "files": [],
+      "assertions": [
+        "States YAML enabled: true overrides MCP_SHELL_ALLOW_UNSAFE=1",
+        "Lists max_execution_time, max_output_size, working_directory, and run_as_user as still enforced in shell_exec mode",
+        "Notes max_output_size caps stdout and stderr independently and cancels on overflow"
+      ]
+    }
+  ]
+}

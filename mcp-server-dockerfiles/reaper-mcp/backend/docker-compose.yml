@@ -1,0 +1,31 @@
+services:
+  reaper-mcp:
+    build:
+      context: ..
+    container_name: reaper-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3015}:${SSE_PORT:-3015}"
+    environment:
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-streamable-http}
+      - SSE_HOST=${SSE_HOST:-0.0.0.0}
+      - SSE_PORT=${SSE_PORT:-3015}
+      - MCP_STATELESS_HTTP=${MCP_STATELESS_HTTP:-true}
+      - MCP_JSON_RESPONSE=${MCP_JSON_RESPONSE:-false}
+      - REAPER_IPC_DIR=${REAPER_IPC_DIR:-/ipc/reaper_mcp}
+      - REAPER_IPC_SHARED=${REAPER_IPC_SHARED:-true}
+      - REAPER_MCP_PROFILE=${REAPER_MCP_PROFILE:-}
+    volumes:
+      - ${REAPER_IPC_HOST_DIR:-/tmp/reaper_mcp}:${REAPER_IPC_DIR:-/ipc/reaper_mcp}:rw
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${SSE_PORT:-3015}/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - reaper-mcp-network
+
+networks:
+  reaper-mcp-network:
+    driver: bridge

@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Add a compressor and EQ to my vocal track in REAPER and set up a sidechain from the kick track.",
+    "should_trigger": true
+  },
+  {
+    "query": "Use REAPER to create a 4-bar synthwave chord progression at 110 BPM on the synth track.",
+    "should_trigger": true
+  },
+  {
+    "query": "Split this vocal item at transients in REAPER and arrange vocal chops along the chorus chord progression.",
+    "should_trigger": true
+  },
+  {
+    "query": "Export the REAPER project stems and analyze the master WAV for loudness, clipping, and silence gaps.",
+    "should_trigger": true
+  },
+  {
+    "query": "Wipe the MIDI notes on tracks 2 and 3 in REAPER and reset the volume envelope range from 8s to 16s.",
+    "should_trigger": true
+  },
+  {
+    "query": "List installed VST plugins in REAPER and apply an automated dark trap mix profile.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a new MIDI track in Ableton Live and load a drum kit on it.",
+    "should_trigger": false
+  },
+  {
+    "query": "Start recording in OBS Studio and switch to the Gaming scene.",
+    "should_trigger": false
+  },
+  {
+    "query": "Convert this MP4 video to MP3 using ffmpeg.",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain the circle of fifths and common jazz ii-V-I chord substitutions.",
+    "should_trigger": false
+  },
+  {
+    "query": "List the files inside my workspace directory and search for config files.",
+    "should_trigger": false
+  },
+  {
+    "query": "Play my ambient playlist on the living room speakers.",
+    "should_trigger": false
+  }
+]

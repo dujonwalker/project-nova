@@ -1,0 +1,50 @@
+[
+  {
+    "query": "save a quick note to Memos about today's server maintenance #self-hosted environment",
+    "should_trigger": true
+  },
+  {
+    "query": "search my Memos for meeting notes from last week using my saved views",
+    "should_trigger": true
+  },
+  {
+    "query": "pin memo memos/abc123 and add a comment on it",
+    "should_trigger": true
+  },
+  {
+    "query": "list all Memos spaces and accept my pending space invitation",
+    "should_trigger": true
+  },
+  {
+    "query": "attach an image to memo memos/xyz without losing its existing attachments",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I connect an MCP client to Memos's built-in /mcp endpoint?",
+    "should_trigger": true
+  },
+  {
+    "query": "save this thought as a note in Blinko",
+    "should_trigger": false
+  },
+  {
+    "query": "create a new note in Trilium under my Projects folder",
+    "should_trigger": false
+  },
+  {
+    "query": "bookmark this URL in Karakeep and tag it self-hosted environment",
+    "should_trigger": false
+  },
+  {
+    "query": "create a new page in our BookStack wiki",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I install Memos with Docker Compose and SQLite?",
+    "should_trigger": false
+  },
+  {
+    "query": "check if the Memos container is running with docker ps",
+    "should_trigger": false
+  }
+]

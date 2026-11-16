@@ -1,0 +1,5 @@
+{
+  "input": "run my customer support chatflow with this request",
+  "reason": "The request specifically mentions running a chatflow, which is the primary capability of the Flowise Agent.",
+  "selectedAgent": "flowise-agent"
+}

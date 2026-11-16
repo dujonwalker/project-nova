@@ -1,0 +1,5 @@
+# Local credentials and runtime overrides
+.env
+**/.env
+!.env.example
+!**/.env.example

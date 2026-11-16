@@ -1,0 +1,128 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 47f25e3..aaa024a 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -27,8 +27,11 @@ eula = false
+ rust-mcp-sdk = {version="1.0", default-features = false, features = [
+     "server",
+     "macros",
+-    "stdio"
++    "stdio",
++    "streamable-http",
++    "sse"
+ ] }
++rust-mcp-axum = "1.0"
+
+ thiserror = { version = "2.0" }
+ dirs = "6.0"
+diff --git a/src/cli.rs b/src/cli.rs
+index 3ea8a07..4d35085 100644
+--- a/src/cli.rs
++++ b/src/cli.rs
+@@ -36,6 +36,41 @@ pub struct CommandArguments {
+     )]
+     pub enable_roots: bool,
+
++    #[arg(
++        long,
++        default_value = "stdio",
++        value_parser = ["stdio", "http"],
++        help = "Transport mode: stdio or http (Streamable HTTP + SSE)",
++        env = "MCP_TRANSPORT"
++    )]
++    pub transport: String,
++
++    #[arg(
++        long,
++        default_value = "0.0.0.0",
++        help = "HTTP bind address when using --transport http",
++        env = "SSE_HOST"
++    )]
++    pub host: String,
++
++    #[arg(
++        short = 'p',
++        long,
++        default_value_t = 3022,
++        help = "HTTP listen port when using --transport http",
++        env = "SSE_PORT"
++    )]
++    pub port: u16,
++
++    #[arg(
++        long,
++        action = clap::ArgAction::SetTrue,
++        value_parser = clap::value_parser!(bool),
++        help = "Return JSON responses instead of SSE streams on POST /mcp",
++        env = "MCP_JSON_RESPONSE"
++    )]
++    pub json_response: bool,
++
+     #[arg(
+         help = "List of directories that are permitted for the operation. It is required when 'enable-roots' is not provided OR client does not support Roots.",
+         long_help = concat!("Provide a space-separated list of directories that are permitted for the operation.\nThis list allows multiple directories to be provided.\n\nExample:  ", env!("CARGO_PKG_NAME"), " /path/to/dir1 /path/to/dir2 /path/to/dir3"),
+diff --git a/src/server.rs b/src/server.rs
+index b694725..107305d 100644
+--- a/src/server.rs
++++ b/src/server.rs
+@@ -1,11 +1,16 @@
++use crate::error::ServiceError;
+ use crate::handler::FileSystemHandler;
+ use crate::{cli::CommandArguments, error::ServiceResult};
++use rust_mcp_axum::{AxumServerOptions, create_axum_server};
++use rust_mcp_sdk::event_store::InMemoryEventStore;
++use rust_mcp_sdk::mcp_http::DnsRebindingOptions;
+ use rust_mcp_sdk::mcp_server::McpServerOptions;
+ use rust_mcp_sdk::schema::{
+     Implementation, InitializeResult, ProtocolVersion, ServerCapabilities, ServerCapabilitiesTools,
+ };
+ use rust_mcp_sdk::{McpServer, StdioTransport, TransportOptions, mcp_server::server_runtime};
+ use rust_mcp_sdk::{ToMcpServerHandler, mcp_icon};
++use std::sync::Arc;
+
+ pub fn server_details() -> InitializeResult {
+     InitializeResult {
+@@ -39,9 +44,42 @@ pub fn server_details() -> InitializeResult {
+ }
+
+ pub async fn start_server(args: CommandArguments) -> ServiceResult<()> {
+-    let transport = StdioTransport::new(TransportOptions::default())?;
++    let transport_mode = args.transport.clone();
++    let host = args.host.clone();
++    let port = args.port;
++    let json_response = args.json_response;
+
+     let handler = FileSystemHandler::new(args)?;
++
++    if transport_mode == "http" {
++        eprintln!(
++            "Starting rust-mcp-filesystem HTTP server on http://{}:{}/mcp (SSE: /sse, Health: /health)",
++            host, port
++        );
++        let server = create_axum_server(
++            server_details(),
++            handler.to_mcp_server_handler(),
++            AxumServerOptions {
++                host,
++                port,
++                enable_json_response: Some(json_response),
++                event_store: Some(Arc::new(InMemoryEventStore::default())),
++                health_endpoint: Some("/health".to_string()),
++                dns_rebinding: DnsRebindingOptions {
++                    dns_rebinding_protection: false,
++                    ..Default::default()
++                },
++                ..Default::default()
++            },
++        );
++        server
++            .start()
++            .await
++            .map_err(|e| ServiceError::FromString(e.to_string()))?;
++        return Ok(());
++    }
++
++    let transport = StdioTransport::new(TransportOptions::default())?;
+     let server = server_runtime::create_server(McpServerOptions {
+         server_details: server_details(),
+         handler: handler.to_mcp_server_handler(),

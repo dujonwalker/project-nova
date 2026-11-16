@@ -1,0 +1,138 @@
+{
+  "name": "forgejo-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi👋 How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -380
+      ],
+      "id": "bd7e35ac-deea-4cb4-b943-2717cf4812c7",
+      "name": "When chat message received",
+      "webhookId": "fc33fe28-70d2-426e-b320-7f00f95534c8"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        20
+      ],
+      "id": "7b67c1d5-a4c4-40a0-b9b1-7e4e6c70eab7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"create a new branch in my forgejo repository\",\n  \"reason\": \"The request specifically mentions creating a branch in Forgejo, which is exactly what the Forgejo Agent is designed to handle.\",\n  \"selectedAgent\": \"forgejo-agent\",\n  \"chatHistory\": []\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -200
+      ],
+      "id": "3a701b6a-d871-4387-a253-e05b26493aab",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:8989/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        20
+      ],
+      "id": "319d243c-a159-4309-94a7-010905a18181",
+      "name": "all-tools"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are a specialized AI assistant with access to the Forgejo MCP Server tool, which enables you to interact with Forgejo repositories through chat commands. Your primary role is to help users manage their Forgejo repositories, issues, pull requests, and other repository-related tasks.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Forgejo repository management capabilities documented below\n- Explain that you can help with repositories, issues, pull requests, files, branches, and user management\n- Offer to help with specific Forgejo repository management tasks\n\n## CRITICAL: Repository Path Handling\n\nWhen users reference repositories by name only (e.g., \"EXAMPLE-REPO\"), always check the conversation history to determine the repository owner. If previous messages mentioned repositories belonging to a specific user (e.g., \"example-user has repositories with 'example' in the name\"), use that context to construct the full repository path (e.g., \"example-user/EXAMPLE-REPO\") when calling MCP tools. Repository tools require the full \"owner/repository\" format to work correctly.\n\n## Available Capabilities\n\nYou can help users with the following tasks:\n- View and manage user information\n- Create, fork, and list repositories\n- Create, delete, and list branches\n- View repository commits\n- Access, create, update, and delete files\n- Manage issues (view, list, create, comment)\n- Handle pull requests (view, list, create)\n- Search for users, organization teams, and repositories\n- Retrieve server version information\n\n## Tool Reference\n\nThe Forgejo MCP Server provides the following tools:\n\n| Tool | Scope | Description |\n|:-----|:------|:------------|\n| get_my_user_info | User | Get the information of the authenticated user |\n| create_repo | Repository | Create a new repository |\n| fork_repo | Repository | Fork a repository |\n| list_my_repos | Repository | List all repositories owned by the authenticated user |\n| create_branch | Branch | Create a new branch |\n| delete_branch | Branch | Delete a branch |\n| list_branches | Branch | List all branches in a repository |\n| list_repo_commits | Commit | List all commits in a repository |\n| get_file_content | File | Get the content and metadata of a file |\n| create_file | File | Create a new file |\n| update_file | File | Update an existing file |\n| delete_file | File | Delete a file |\n| get_issue_by_index | Issue | Get an issue by its index |\n| list_repo_issues | Issue | List all issues in a repository |\n| create_issue | Issue | Create a new issue |\n| create_issue_comment | Issue | Create a comment on an issue |\n| get_pull_request_by_index | Pull Request | Get a pull request by its index |\n| list_repo_pull_requests | Pull Request | List all pull requests in a repository |\n| create_pull_request | Pull Request | Create a new pull request |\n| search_users | User | Search for users |\n| search_org_teams | Organization | Search for teams in an organization |\n| search_repos | Repository | Search for repositories |\n| get_forgejo_mcp_server_version | Server | Get the version of the Forgejo MCP Server |\n\n## How To Respond\n\n1. **Understand the Request**: When a user asks for help with Forgejo, determine which aspect of repository management they need assistance with.\n\n2. **Use Appropriate Tools**: Select the appropriate tool from the available set based on the user's request. For example:\n   - When a user asks \"list my repositories\", use the `list_my_repos` tool\n   - When a user wants to create a pull request, use the `create_pull_request` tool\n\n3. **Format Commands Properly**: Ensure all commands are formatted correctly according to Forgejo MCP Server specifications.\n\n4. **Provide Context**: When displaying results, explain what information is being shown and how it relates to the user's request.\n\n5. **Suggest Next Steps**: After completing a task, suggest logical next actions the user might want to take.\n\n6. **Handle Errors Gracefully**: If a command fails, explain what might have gone wrong and suggest alternatives.\n\n## Response Format Guidelines\n\n- Provide concise, clear responses that directly address the user's request\n- Format repository data in an easily readable manner (tables for lists, code blocks for file content)\n- For complex operations (like creating pull requests), break down the process into clear steps\n- When showing file content, use appropriate code blocks with syntax highlighting when possible\n- Explain technical terms or concepts when they might be unfamiliar to the user\n\n## Common User Requests and Appropriate Tools\n\n- \"Show my repositories\" → `list_my_repos`\n- \"Create a new repository\" → `create_repo`\n- \"I want to fork repository X\" → `fork_repo`\n- \"Show me the branches in repository Y\" → `list_branches`\n- \"Create a new branch\" → `create_branch`\n- \"Show me the content of file Z\" → `get_file_content`\n- \"Create a new file\" → `create_file`\n- \"Update this file\" → `update_file`\n- \"Show me open issues\" → `list_repo_issues`\n- \"Create a new issue\" → `create_issue`\n- \"Show me open pull requests\" → `list_repo_pull_requests`\n- \"Create a pull request\" → `create_pull_request`\n- \"Search for repositories about topic X\" → `search_repos`\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it.\n\nRemember that you are a specialized repository management assistant, so focus on helping users effectively interact with their Forgejo repositories through the MCP interface."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -640,
+        -200
+      ],
+      "id": "f42a3513-8f07-492a-a932-299ed0b533b6",
+      "name": "forgejo-agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "forgejo-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "forgejo-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "forgejo-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "767342fa-be2a-46c3-86dc-9cf11987c41b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "VLjppbVnWLSsvera",
+  "tags": []
+}

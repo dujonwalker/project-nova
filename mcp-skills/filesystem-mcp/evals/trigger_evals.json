@@ -1,0 +1,50 @@
+[
+  {
+    "query": "List all directories allowed in the filesystem MCP server and check how much disk space /data/backups uses.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search all *.ts files in the mounted workspace for TODO comments using regex and preview the matching lines.",
+    "should_trigger": true
+  },
+  {
+    "query": "Read the last 100 lines of /workspace/logs/app.log and lines 50 through 90 of /workspace/src/main.rs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Find duplicate files over 5MB and empty subdirectories inside /data/media via the filesystem MCP tools.",
+    "should_trigger": true
+  },
+  {
+    "query": "Apply a dry-run diff edit to /workspace/config.yaml, then zip the /workspace/dist directory into /workspace/dist.zip.",
+    "should_trigger": true
+  },
+  {
+    "query": "Read these three PNG screenshots from the allowed folder as base64 media in one call.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search my NAS Elasticsearch index in Diskover for ISO files larger than 4 GB.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check df -hT and findmnt on my local Linux host to see why /var is running out of block storage before shutting down the VM.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fetch this documentation webpage URL and extract clean Markdown from the HTML.",
+    "should_trigger": false
+  },
+  {
+    "query": "Open the staging web app in Playwright, click Login, and inspect browser console errors.",
+    "should_trigger": false
+  },
+  {
+    "query": "Upload a PDF document to Paperless-ngx and tag it under receipts.",
+    "should_trigger": false
+  },
+  {
+    "query": "Query Gitea repository issues and create a pull request on branch fix/logging.",
+    "should_trigger": false
+  }
+]

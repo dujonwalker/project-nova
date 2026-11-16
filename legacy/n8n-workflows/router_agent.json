@@ -1,0 +1,3401 @@
+{
+  "name": "router-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! My name is NOVA. How can I assist you today?",
+        "options": {
+          "allowFileUploads": true,
+          "title": "NOVA - Networked Orchestration of Virtual Agents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1920,
+        -2440
+      ],
+      "id": "1674d06f-ce12-4c0f-933b-665bd277fc30",
+      "name": "When chat message received",
+      "webhookId": "aacadb54-e534-45b1-8888-7a5bed9900ab"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.conversationHistory && $json.body.conversationHistory.length > 0 ? 'Previous conversation context:\\n' + $json.body.conversationHistory.map(msg => (msg.role === 'user' ? 'User: ' : 'Assistant: ') + msg.content).join('\\n') + '\\n\\nCurrent request:\\n' + $json.body.chatInput : $json.body.chatInput }}",
+        "options": {
+          "systemMessage": "You are a specialized AI assistant that serves as a routing agent for a system of 25 specialized AI agents. Your primary responsibility is to analyze user requests, determine which specialized agent would be most appropriate to handle the request, and provide the agent ID along with a brief explanation of why that agent is the best fit.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the comprehensive system of 25 specialized agents documented below\n- Explain that you can route them to agents for knowledge management, development, media tools, AI automation, and monitoring\n- Offer to help route them to the most appropriate specialized agent for their specific needs\n\n## CRITICAL: Service Name Recognition\n\n**WHEN A REQUEST EXPLICITLY MENTIONS A SERVICE NAME**, always route to that service's agent immediately. DO NOT ask for clarification when the service is clearly identified:\n\n- **Blinko mentions** → blinko-agent (e.g., \"do i have any notes in blinko?\", \"show me my blinko notes\", \"create a blinko note\")\n- **TriliumNext mentions** → triliumnext-agent\n- **BookStack mentions** → bookstack-agent\n- **Gitea mentions** → gitea-agent\n- **Forgejo mentions** → forgejo-agent\n- **YouTube mentions** → youtube-agent\n- **OBS mentions** → obs-agent\n- **REAPER mentions** → reaper-agent or reaper-qa-agent\n\n**Rule**: If the user explicitly names a service/platform that has a dedicated agent, route there immediately without clarification.\n\n## Your Core Responsibilities\n\n1. Accurately analyze the content and intent of user requests\n2. Match requests to the most appropriate specialized agent based on domain expertise and capabilities\n3. Return a clear decision with the selected agent ID and brief reasoning\n4. Handle ambiguous requests by asking clarifying questions\n\n## Specialized Agent Directory\n\nYou have access to the following specialized agents, each with specific domains and capabilities:\n\n### Knowledge Management & Note-Taking Agents\n\n1. **TriliumNext Notes Agent** (ID: `triliumnext-agent`)\n   - Manages hierarchical notes in TriliumNext Notes application\n   - Capabilities: search, create, update, delete notes with hierarchical organization\n   - Best for: Users working with TriliumNext Notes for personal knowledge management\n\n2. **Blinko Agent** (ID: `blinko-agent`)\n   - Manages notes in the Blinko note service\n   - Capabilities: create/update flash notes and regular notes, search, retrieve daily reviews\n   - Best for: Quick note-taking, daily reviews, and sharing notes\n\n3. **BookStack Agent** (ID: `bookstack-agent`)\n   - Interfaces with BookStack knowledge base\n   - Capabilities: search and retrieve information from BookStack documentation\n   - Best for: Finding and understanding information in organizational documentation\n\n4. **Memos Agent** (ID: `memos-agent`)\n   - Works with Memos note-taking application\n   - Capabilities: search existing memos, create new ones\n   - Best for: Managing bite-sized notes and quick information capture\n\n5. **Outline Agent** (ID: `outline-agent`)\n   - Manages Outline knowledge base platform\n   - Capabilities: document management, collection organization, comment handling\n   - Best for: Team documentation, wiki management, and collaborative knowledge bases\n\n6. **SiYuan Agent** (ID: `siyuan-agent`)\n   - Interfaces with SiYuan Note knowledge base\n   - Capabilities: browse notebooks, search information, create/edit content, manage files\n   - Best for: Users with SiYuan Note for knowledge management and organization\n\n7. **Karakeep Agent** (ID: `karakee-agent`)\n   - Helps manage digital content through Karakeep\n   - Capabilities: search bookmarks, manage lists, tag management, add bookmarks\n   - Best for: Organizing bookmarks, notes, and digital content collections\n\n8. **Paperless Agent** (ID: `paperless-agent`)\n   - Works with Paperless-NGX document management system\n   - Capabilities: search, retrieve, manage documents, create/manage tags\n   - Best for: Digital document management and organization\n\n9. **OnlyOffice Agent** (ID: `onlyoffice-agent`)\n   - Integrated with ONLYOFFICE DocSpace\n   - Capabilities: manage rooms, folders, files, user access\n   - Best for: Document collaboration and management in ONLYOFFICE\n\n### Development & Repository Management Agents\n\n10. **CLI Server Agent** (ID: `cli-server-agent`)\n    - Provides secure command-line execution capabilities\n    - Capabilities: execute whitelisted commands, verify security rules\n    - Best for: System operations requiring command-line access\n\n11. **Forgejo Agent** (ID: `forgejo-agent`)\n    - Manages Forgejo repositories\n    - Capabilities: view/manage repos, branches, commits, files, issues, PRs\n    - Best for: Forgejo repository management tasks\n\n12. **Gitea Agent** (ID: `gitea-agent`)\n    - Manages Gitea repositories\n    - Capabilities: user/repo/branch management, file operations, issues, PRs\n    - Best for: Gitea repository management tasks\n\n13. **System Search Agent** (ID: `system-search-agent`)\n    - Searches for files and folders across Linux file systems\n    - Capabilities: search with patterns, filter with Unix-style matching\n    - Best for: Finding files and organizing digital content on Linux\n\n### Media & Creative Tools Agents\n\n14. **Ableton Copilot** (ID: `ableton-copilot`)\n    - Assists with music production in Ableton Live\n    - Capabilities: helps with production techniques, sound design, composition\n    - Best for: Musicians and producers using Ableton Live\n\n15. **OBS Agent** (ID: `obs-agent`)\n    - Controls OBS Studio through WebSocket protocol\n    - Capabilities: manages scenes, sources, streaming, recording, audio settings\n    - Best for: Streamers and content creators using OBS Studio\n\n16. **Reaper Agent** (ID: `reaper-agent`)\n    - Controls REAPER digital audio workstation\n    - Capabilities: create projects/tracks, add MIDI notes, get project info\n    - Best for: Direct music creation and manipulation in REAPER\n\n17. **Reaper QA Agent** (ID: `reaper-qa-agent`)\n    - Provides information about REAPER projects\n    - Capabilities: find and parse REAPER projects to answer questions\n    - Best for: Understanding and analyzing existing REAPER projects\n\n18. **YouTube Agent** (ID: `youtube-agent`)\n    - Extracts and processes transcripts from YouTube videos\n    - Capabilities: retrieve transcripts with/without timestamps, analyze video content\n    - Best for: Understanding video content without watching, content summarization, research\n\n### AI & Automation Agents\n\n19. **Flowise Agent** (ID: `flowise-agent`)\n    - Connects to Flowise chatflows and assistants\n    - Capabilities: list available chatflows, send inputs to chatflows\n    - Best for: Leveraging custom AI workflows created in Flowise\n\n20. **Langfuse Agent** (ID: `langfuse-agent`)\n    - Accesses managed prompts from Langfuse\n    - Capabilities: list available prompts, retrieve and compile specific prompts\n    - Best for: Using professionally designed prompts from Langfuse\n\n21. **Puppeteer Agent** (ID: `puppeteer-agent`)\n    - Provides browser automation capabilities\n    - Capabilities: navigate websites, take screenshots, interact with elements\n    - Best for: Web automation, scraping, and testing\n\n22. **RAGFlow Agent** (ID: `ragflow-agent`)\n    - Document-grounded retrieval-augmented generation system\n    - Capabilities: retrieve and summarize factual, citation-supported content\n    - Best for: Knowledge retrieval with precise citations and source tracking\n\n23. **Fetch Agent** (ID: `fetch-agent`)\n    - Retrieves and processes web content in various formats\n    - Capabilities: fetch HTML, JSON, plain text, and Markdown from URLs\n    - Best for: Web content retrieval, API data fetching, content analysis\n\n### Monitoring & Home Automation Agents\n\n24. **Home Assistant Agent** (ID: `home-assistant-agent`)\n    - Controls smart home devices through Home Assistant\n    - Capabilities: query device states, control devices, troubleshoot automations\n    - Best for: Smart home management and control\n\n25. **Prometheus Agent** (ID: `prometheus-agent`)\n    - Queries and analyzes metrics from Prometheus monitoring systems\n    - Capabilities: run queries, analyze metrics, troubleshoot performance\n    - Best for: System monitoring, performance analysis, and troubleshooting\n\n## Decision-Making Framework\n\nWhen analyzing a user request, follow this process:\n\n1. **Identify the domain**: Determine which general category the request falls into:\n   - Knowledge/Note Management\n   - Development/Repository Management\n   - Media/Creative Tools\n   - AI/Automation\n   - Monitoring/Home Automation\n\n2. **Identify specific tools or platforms**: Look for mentions of specific applications, platforms, or services that match with specialized agents\n\n3. **Analyze capabilities needed**: Determine what operations or functions the user is trying to perform\n\n4. **Match to specialized agent**: Select the agent with the closest domain match and required capabilities\n\n5. **Resolve ambiguity**: If multiple agents could handle the request or if the request is unclear, identify the most likely agent but note alternative options\n\n## CRITICAL: Conversation Context Handling\n\n**ALWAYS CHECK CONVERSATION HISTORY FIRST**: When conversation history is provided, analyze it to understand:\n- What specialized agent(s) were previously used\n- What domain/platform the conversation was focused on\n- Whether the current request is a follow-up or continuation\n\n**Follow-up Question Rules**:\n- **Repository questions after repo discussions**: If previous messages involved repositories (Gitea, Forgejo), route follow-ups like \"anything with X in the name?\" to the same repository agent\n- **Note/document searches after knowledge base queries**: If previous context involved searching notes/documents, continue with the same knowledge agent\n- **Media requests after media discussions**: If previous context involved media tools, continue with the same media agent\n\n**Examples of contextual follow-ups**:\n- After Gitea discussion: \"do you see any repos with example in the name?\" → gitea-agent\n- After BookStack search: \"anything about databases?\" → bookstack-agent\n- After YouTube transcript: \"summarize the key points\" → youtube-agent\n\n**DO NOT** send contextual follow-up questions to clarification-needed unless they are genuinely ambiguous across different domains.\n\n## Response Format\n\nFor clear requests that map to a specific agent, respond with:\n\n```\nSELECTED AGENT: [agent_id]\nREASON: [Brief explanation of why this agent is the best match for the request]\nUSER_MESSAGE: [Repeat the user's exact original message here]\n```\n\nFor ambiguous requests requiring clarification, respond with:\n\n```\nCLARIFICATION NEEDED\nPOSSIBLE AGENTS: [list of potential agent_ids]\nQUESTION: [Specific question to help determine the correct agent]\nUSER_MESSAGE: [Repeat the user's exact original message here]\n```\n\nIMPORTANT: Always include the USER_MESSAGE field with the user's exact original message in your response. This is critical for proper routing.\n\n## Examples\n\nExample 1:\nUser: \"I need to search for documents about project X in my knowledge base\"\nResponse:\n```\nSELECTED AGENT: outline-agent\nREASON: The request involves searching for documents in a knowledge base, which is a core capability of the Outline Agent. The reference to \"project X\" suggests organizational documentation, which Outline specializes in managing.\nUSER_MESSAGE: I need to search for documents about project X in my knowledge base\n```\n\nExample 2:\nUser: \"Help me control my smart lights in the living room\"\nResponse:\n```\nSELECTED AGENT: home-assistant-agent\nREASON: The request involves controlling smart home devices (lights), which is a primary function of the Home Assistant Agent.\nUSER_MESSAGE: Help me control my smart lights in the living room\n```\n\nExample 3:\nUser: \"I want to create a new note about my meeting\"\nResponse:\n```\nCLARIFICATION NEEDED\nPOSSIBLE AGENTS: blinko-agent, memos-agent, triliumnext-agent, siyuan-agent\nQUESTION: Which note-taking application are you using? Options include Blinko, Memos, TriliumNext Notes, or SiYuan Note.\nUSER_MESSAGE: I want to create a new note about my meeting\n```\n\nExample 4:\nUser: \"Get the transcript from this YouTube video: https://www.youtube.com/watch?v=dQw4w9WgXcQ\"\nResponse:\n```\nSELECTED AGENT: youtube-agent\nREASON: The request involves extracting a transcript from a YouTube video, which is the primary function of the YouTube Agent.\nUSER_MESSAGE: Get the transcript from this YouTube video: https://www.youtube.com/watch?v=dQw4w9WgXcQ\n```\n\nExample 5:\nUser: \"Retrieve the content from this website for me\"\nResponse:\n```\nSELECTED AGENT: fetch-agent\nREASON: The request involves retrieving content from a website, which is the core capability of the Fetch Agent.\nUSER_MESSAGE: Retrieve the content from this website for me\n```\n\nExample 6:\nUser: \"do i have any notes in blinko?\"\nResponse:\n```\nSELECTED AGENT: blinko-agent\nREASON: The request specifically mentions Blinko and asks about notes, which is directly handled by the Blinko Agent that manages notes in the Blinko note service.\nUSER_MESSAGE: do i have any notes in blinko?\n```\n\nExample 7:\nUser: \"show me my blinko notes\"\nResponse:\n```\nSELECTED AGENT: blinko-agent\nREASON: The request explicitly asks for Blinko notes, which is the primary function of the Blinko Agent.\nUSER_MESSAGE: show me my blinko notes\n```\n\nRemember, your primary goal is to route the user to the most appropriate specialized agent based on their request. Provide clear, concise reasoning for your selection to help users understand why a particular agent is best suited to assist them. Always include the original user message in your response using the USER_MESSAGE field.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1560,
+        -2180
+      ],
+      "id": "cc28784e-2bf3-46d6-a136-274216a076fc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1620,
+        -1980
+      ],
+      "id": "424aad90-7ce5-4c69-a0ce-5b1e800ee1a2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "ableton-copilot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c237b982-c900-4525-8eeb-b02ab39f980c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1c1ab39a-d5b7-4719-aec6-f57bcc26c92f",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "blinko-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bc1c2592-cda7-432f-af7c-010f859a4ca1",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "bookstack-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "faa89375-a0ac-4f84-9c11-0797e0da53f2",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "cli-server-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cd06e72a-76b0-424e-987c-bc11ad37517a",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "flowise-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cab0b253-9ac6-4adc-896d-c713061db0b9",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "forgejo-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0214372d-ac3a-4543-a821-8ca1efff2f2e",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "gitea-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5b81bca5-bfda-4430-9c91-dfaf2473ceb3",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "home-assistant-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e726884a-0027-4baa-b891-1a7c43c9ecbc",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "karakee-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "74ed2959-91ff-48d4-a9a6-24e434899c55",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "langfuse-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e22da3bb-82e2-44ae-a07d-16ef3f8e2de3",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "memos-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2f4ecfba-4e21-4b30-a13d-c4b006dd81eb",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "obs-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "46660559-8bc6-4ddf-a428-0cec003265b5",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "onlyoffice-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0a84de92-1cd6-4b4a-ac90-53f031e60b2a",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "outline-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dbf5ad76-fff8-48d1-a833-7b6a1bc63e3e",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "paperless-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e55cf453-07d1-46ac-8376-700f828696f4",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "prometheus-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a11649fa-4325-4294-b370-d8476a128189",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "puppeteer-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8f7c3e58-9373-42e6-b102-609bdc03c320",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "ragflow-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8c8501c9-1b67-477b-b79d-fdf209a5e2b9",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "reaper-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7744f7b3-f024-4cef-b8c0-ca86935ea228",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "reaper-qa-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e95b0043-252b-4dce-8835-63f2bc2920c2",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "siyuan-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3ffb2eae-399a-4683-a25e-205031972d53",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "system-search-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fa06ef70-f374-4bf3-9656-3e0c638a5d93",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "triliumnext-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f5a9af83-b3bc-4f04-b3ef-4ad3fd418a78",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "clarification-needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b6c36f63-506b-4819-96a2-a00cd8cee8ff",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "youtube-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8b3e65b8-7731-4d0c-909e-4d7eb9345989",
+                    "leftValue": "={{ $json.selectedAgent }}",
+                    "rightValue": "fetch-agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -980,
+        -2660
+      ],
+      "id": "3ea2546b-3a63-471f-a4ce-563a9573787f",
+      "name": "Route to Agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "U9kHToGdtVOOUQ8i",
+          "mode": "list",
+          "cachedResultName": "ableton-copilot"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "originalMessage",
+              "displayName": "originalMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "aiResponse",
+              "displayName": "aiResponse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -4680
+      ],
+      "id": "2c327a01-da22-4815-b962-f3ae8282ccd2",
+      "name": "ableton-copilot"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "663BL5mOEEA9PAk9",
+          "mode": "list",
+          "cachedResultName": "blinko"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "originalMessage",
+              "displayName": "originalMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "aiResponse",
+              "displayName": "aiResponse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -4480
+      ],
+      "id": "f8102c28-7768-4aa2-85fb-e3944c9e4c5d",
+      "name": "blinko-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YywcuhJHx7Ib4PPg",
+          "mode": "list",
+          "cachedResultName": "bookstack"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -4280
+      ],
+      "id": "b9dad33e-c768-438c-ab5f-c60b9d413cab",
+      "name": "bookstack-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lWYJFMtOecosM5BG",
+          "mode": "list",
+          "cachedResultName": "cli-server"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -4080
+      ],
+      "id": "f548a1e8-68ca-4c19-b316-cf1035d3f104",
+      "name": "cli-server-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vPFfIsP04dA0RGKf",
+          "mode": "list",
+          "cachedResultName": "flowise"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -3880
+      ],
+      "id": "ca3b65df-d0fd-442c-88c2-3834aa2c7f91",
+      "name": "flowise-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VLjppbVnWLSsvera",
+          "mode": "list",
+          "cachedResultName": "forgejo-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -2680
+      ],
+      "id": "a66a4f12-051e-4a2f-8efc-219cd4c3f1b5",
+      "name": "forgejo-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JfoZIBPKeCFP11n2",
+          "mode": "list",
+          "cachedResultName": "gitea-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -3680
+      ],
+      "id": "b0b5fc55-eb8d-44df-9999-78404394c564",
+      "name": "gitea-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "IRoM12q6Bmj6ZOEf",
+          "mode": "list",
+          "cachedResultName": "home-assistant"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -3480
+      ],
+      "id": "3ecb43cb-adac-41b4-aa28-5cff620a8dd5",
+      "name": "home-assistant-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wPNCVPV49N1UHZXp",
+          "mode": "list",
+          "cachedResultName": "langfuse-server"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -3080
+      ],
+      "id": "1e6d24ef-b06c-476c-b58d-320640dedc72",
+      "name": "langfuse-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WSmgeNYwSiJ2Xiq7",
+          "mode": "list",
+          "cachedResultName": "memos-mcp"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -2880
+      ],
+      "id": "1a91f55f-f8d3-4f93-a7e2-ee6588fc5288",
+      "name": "memos-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Z3gZAj9TvyJ3TCEj",
+          "mode": "list",
+          "cachedResultName": "obs-server"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -2480
+      ],
+      "id": "042a390a-3a3b-42f9-b98c-4adadb7b1572",
+      "name": "obs-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "R7Mrgn6n1JLX5REW",
+          "mode": "list",
+          "cachedResultName": "onlyoffice-docspace"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -2280
+      ],
+      "id": "831e238b-9ba1-45f4-b167-c1b2053de107",
+      "name": "onlyoffice-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "k66UmWWvJw9JL4R8",
+          "mode": "list",
+          "cachedResultName": "outline-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -2080
+      ],
+      "id": "39d09ec0-bbf8-4cdc-ba7b-0e4b5476748e",
+      "name": "outline-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WmsDbrLVosfoJ0fz",
+          "mode": "list",
+          "cachedResultName": "paperless-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -1880
+      ],
+      "id": "f175acca-f6e6-4f1f-bfb4-ea7914ffdb17",
+      "name": "paperless-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SbW32XgffRSJPIx7",
+          "mode": "list",
+          "cachedResultName": "prometheus"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -1680
+      ],
+      "id": "caa1a73b-a0f3-4893-a135-bb946c7f02a1",
+      "name": "prometheus-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ac0gXz0B2sAQMmVd",
+          "mode": "list",
+          "cachedResultName": "puppeteer"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -880
+      ],
+      "id": "1a17ce9b-4497-43e7-9cc3-4e2d994ca76a",
+      "name": "puppeteer-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "297gKElp4LWZs47l",
+          "mode": "list",
+          "cachedResultName": "ragflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -680
+      ],
+      "id": "9d52135e-097b-4dec-a46b-2eee0840ce8d",
+      "name": "ragflow-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lFi52ELAp0RiR62O",
+          "mode": "list",
+          "cachedResultName": "reaper"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -480
+      ],
+      "id": "5db52a70-3cf0-4f5d-b2da-38065ad4bcc7",
+      "name": "reaper-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "32VqtDrIIioJrVVy",
+          "mode": "list",
+          "cachedResultName": "reaper-qa"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -280
+      ],
+      "id": "1b5eb8df-0012-4910-82a3-04f49ee17ab2",
+      "name": "reaper-qa-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "X7AQ4F7pNCY8920l",
+          "mode": "list",
+          "cachedResultName": "siyuan"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -80
+      ],
+      "id": "3386ef6b-2c5b-441d-a449-54138510c173",
+      "name": "siyuan-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "2z1ZsWxV8ZG6iMxM",
+          "mode": "list",
+          "cachedResultName": "everything-search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        140
+      ],
+      "id": "55ebd7d8-907b-490a-9fa3-4f3f13357d75",
+      "name": "system-search-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Y8LfFlIIbbnRICjO",
+          "mode": "list",
+          "cachedResultName": "triliumnext-mcp"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        340
+      ],
+      "id": "4a11c35c-6f5d-4cbd-9fea-361280990d3a",
+      "name": "triliumnext-agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the AI response text\nconst aiResponse = $input.item.json.output || \"\";\n\nlet selectedAgent = \"\";\nlet reason = \"\";\nlet userMessage = \"\";\n\n// Extract agent, reason, and user message from the AI response\nif (aiResponse.includes(\"SELECTED AGENT:\")) {\n  // Extract agent ID\n  const agentMatch = aiResponse.match(/SELECTED AGENT: ([a-zA-Z0-9_-]+)/);\n  selectedAgent = agentMatch && agentMatch[1] ? agentMatch[1] : \"\";\n  \n  // Extract reason\n  const reasonMatch = aiResponse.match(/REASON: ([\\s\\S]+?)($|\\n|USER_MESSAGE:)/);\n  reason = reasonMatch && reasonMatch[1] ? reasonMatch[1].trim() : \"\";\n  \n  // Extract original user message\n  const messageMatch = aiResponse.match(/USER_MESSAGE: ([\\s\\S]+?)($|\\n)/);\n  userMessage = messageMatch && messageMatch[1] ? messageMatch[1].trim() : \"\";\n} else if (aiResponse.includes(\"CLARIFICATION NEEDED\")) {\n  selectedAgent = \"clarification-needed\";\n  const questionMatch = aiResponse.match(/QUESTION: ([\\s\\S]+?)($|\\n|USER_MESSAGE:)/);\n  reason = questionMatch && questionMatch[1] ? questionMatch[1].trim() : \"\";\n  const messageMatch = aiResponse.match(/USER_MESSAGE: ([\\s\\S]+?)($|\\n)/);\n  userMessage = messageMatch && messageMatch[1] ? messageMatch[1].trim() : \"\";\n}\n\n// Extract conversation history from the webhook input\nlet chatHistory = [];\ntry {\n  // Access conversation history from the webhook payload\n  const webhookInputs = $('Webhook').all();\n  if (webhookInputs && webhookInputs[0] && webhookInputs[0].json && webhookInputs[0].json.body) {\n    const conversationHistory = webhookInputs[0].json.body.conversationHistory;\n    if (Array.isArray(conversationHistory)) {\n      // Convert OpenWebUI format to LangChain format for consistency\n      chatHistory = conversationHistory.map(msg => ({\n        id: [\"langchain_core\", \"messages\", msg.role === \"user\" ? \"HumanMessage\" : \"AIMessage\"],\n        kwargs: {\n          content: msg.content\n        }\n      }));\n    }\n  }\n  console.log(\"Chat history retrieved from webhook:\", chatHistory.length, \"messages\");\n} catch (error) {\n  console.log(\"Could not access conversation history from webhook:\", error);\n  chatHistory = [];\n}\n\n// Return the fields required by the sub-workflows\nreturn {\n  json: {\n    input: userMessage,\n    reason: reason,\n    selectedAgent: selectedAgent,\n    chatHistory: chatHistory\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        -2180
+      ],
+      "id": "9da271ee-2202-490f-acb7-c3dce517f39a",
+      "name": "Process Routing Decision"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the reason field which contains the clarification question for this flow\nconst reason = $input.item.json.reason || \"\";\nlet clarificationQuestion = \"Could you please provide more information about what you're trying to do?\";\n\n// The reason field should contain the clarification question\nif (reason && reason.length > 0) {\n  clarificationQuestion = reason;\n} else {\n  // Fallback: try to extract from any available text\n  const input = $input.item.json.input || \"\";\n  if (input.includes(\"QUESTION:\")) {\n    const match = input.match(/QUESTION: (.*?)($|\\n)/);\n    if (match && match[1]) {\n      clarificationQuestion = match[1].trim();\n    }\n  }\n}\n\nreturn {\n  json: {\n    response: clarificationQuestion\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        -1480
+      ],
+      "id": "e4895059-baec-496c-bf52-28c22a98a048",
+      "name": "clarification-needed"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VRlbHY5QKtbwV9Tk",
+          "mode": "list",
+          "cachedResultName": "karakeep-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -3280
+      ],
+      "id": "f6fc9003-2b67-4969-9545-f082c1174345",
+      "name": "karakeep-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EL2TabuIdJTKT9d8",
+          "mode": "list",
+          "cachedResultName": "youtube-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -740,
+        -1280
+      ],
+      "id": "005620b5-1c31-48be-b39b-5dd1ffc65b72",
+      "name": "youtube-agent"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "NuUcJz8v0NeoPn0V",
+          "mode": "list",
+          "cachedResultName": "fetch-agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "selectedAgent",
+              "displayName": "selectedAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "chatHistory",
+              "displayName": "chatHistory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -760,
+        -1080
+      ],
+      "id": "d11b7b61-60f2-40f6-973d-f5904597629f",
+      "name": "fetch-agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "185800a6-f64b-4b8d-9663-65a62f18e53f",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1860,
+        -2180
+      ],
+      "id": "a980aedc-66d0-4634-b78d-f981778fb0ca",
+      "name": "Webhook",
+      "webhookId": "185800a6-f64b-4b8d-9663-65a62f18e53f"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -4680
+      ],
+      "id": "86c5a40a-0b1d-40b0-9baf-da0c153436c5",
+      "name": "respond-to-webhook-ableton-copilot"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -4480
+      ],
+      "id": "05e3890c-b0e7-4bc3-b61d-0a087a7c3f97",
+      "name": "respond-to-webhook-blinko-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -4280
+      ],
+      "id": "6d8e2162-f07d-4977-a471-eee8b76cc4cf",
+      "name": "respond-to-webhook-bookstack-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -4080
+      ],
+      "id": "1d48778c-c9fa-4b47-90e5-d0b03d27bcfb",
+      "name": "respond-to-webhook-cli-server-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -3880
+      ],
+      "id": "8f40b63b-13ea-4773-9b7f-90d0ce8ae763",
+      "name": "respond-to-webhook-flowise-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -3680
+      ],
+      "id": "17278857-2567-4875-865a-63e1fa455184",
+      "name": "respond-to-webhook-gitea-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -3480
+      ],
+      "id": "c3c40faa-5e2c-44c8-af2a-0a0a8ca5a414",
+      "name": "respond-to-webhook-home-assistant-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -3280
+      ],
+      "id": "b6dbc731-bbf4-4743-a39d-73b3e2546129",
+      "name": "respond-to-webhook-karakeep-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -3080
+      ],
+      "id": "2c1250cd-5cb3-4b4f-87e9-d28221d3230a",
+      "name": "respond-to-webhook-langfuse-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -2880
+      ],
+      "id": "87b63f9a-0cdd-4da0-8b8e-2ab8614ec9c1",
+      "name": "respond-to-webhook-memos-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -2680
+      ],
+      "id": "6e755a0e-57bd-4cc8-af20-1d5cfcc2292d",
+      "name": "respond-to-webhook-forgejo-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -2480
+      ],
+      "id": "54b5e9bd-c8cd-4cf1-bc4c-9f06edd59c3b",
+      "name": "respond-to-webhook-obs-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -2280
+      ],
+      "id": "10404b04-3d4f-42c8-934d-66afcf28321a",
+      "name": "respond-to-webhook-onlyoffice-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -2080
+      ],
+      "id": "5b87f7e8-10d3-4d91-a135-3a751c45fd3d",
+      "name": "respond-to-webhook-outline-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -1880
+      ],
+      "id": "c3db9411-9984-445d-95e3-d264b7c2ba91",
+      "name": "respond-to-webhook-paperless-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -1680
+      ],
+      "id": "554c4e45-252e-4a6e-bc01-22697a2987b4",
+      "name": "respond-to-webhook-prometheus-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -1480
+      ],
+      "id": "e4095ec0-06b6-4656-b486-01016f9c08ee",
+      "name": "respond-to-webhook-clarification-needed"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -1280
+      ],
+      "id": "1817a9a8-ed7f-48a8-8c09-2cec266c418b",
+      "name": "respond-to-webhook-youtube-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -1080
+      ],
+      "id": "129f639c-893c-45eb-b98b-34301f4ac466",
+      "name": "respond-to-webhook-fetch-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -880
+      ],
+      "id": "2c3906a1-e535-43a0-8754-37d245057c69",
+      "name": "respond-to-webhook-puppeteer-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -680
+      ],
+      "id": "d7c0fdb5-996a-4bfa-9343-4b950572c509",
+      "name": "respond-to-webhook-ragflow-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -480
+      ],
+      "id": "0c9c18ed-4c21-45c2-aca0-554294b38610",
+      "name": "respond-to-webhook-reaper-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -280
+      ],
+      "id": "a590161e-c868-469d-82d5-21a8c9cdf0e5",
+      "name": "respond-to-webhook-reaper-qa-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -80
+      ],
+      "id": "7849408e-5294-4754-82ec-2e64a525fb0d",
+      "name": "respond-to-webhook-siyuan-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        140
+      ],
+      "id": "5e9049d8-800e-4e91-a3cb-633017035698",
+      "name": "respond-to-webhook-system-search-agent"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $input.first().json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        340
+      ],
+      "id": "2a08601a-d63e-4bd0-8523-4f953c25d00f",
+      "name": "respond-to-webhook-triliumnext-agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "=customKey",
+        "sessionKey": "={{ $json.body.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1440,
+        -1900
+      ],
+      "id": "b70399a2-bec7-44b6-8472-75a093779511",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process Routing Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Agent": {
+      "main": [
+        [
+          {
+            "node": "ableton-copilot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "blinko-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "bookstack-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "cli-server-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "flowise-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "forgejo-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "gitea-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "home-assistant-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "karakeep-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "langfuse-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "memos-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "obs-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "onlyoffice-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "outline-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "paperless-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "prometheus-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "puppeteer-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ragflow-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "reaper-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "reaper-qa-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "siyuan-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "system-search-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "triliumnext-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "clarification-needed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "youtube-agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fetch-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ableton-copilot": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-ableton-copilot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blinko-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-blinko-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "bookstack-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-bookstack-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cli-server-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-cli-server-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "flowise-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-flowise-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gitea-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-gitea-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "home-assistant-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-home-assistant-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "langfuse-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-langfuse-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "memos-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-memos-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "forgejo-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-forgejo-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "obs-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-obs-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "onlyoffice-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-onlyoffice-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "outline-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-outline-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "paperless-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-paperless-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prometheus-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-prometheus-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "puppeteer-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-puppeteer-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ragflow-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-ragflow-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "reaper-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-reaper-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "reaper-qa-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-reaper-qa-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "siyuan-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-siyuan-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "system-search-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-system-search-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "triliumnext-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-triliumnext-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Routing Decision": {
+      "main": [
+        [
+          {
+            "node": "Route to Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "clarification-needed": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-clarification-needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "karakeep-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-karakeep-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "youtube-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-youtube-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-to-webhook-fetch-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98f19182-a265-411c-b0ab-1b8247c4e2c8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "vfzBXZ7VW6TOXKLL",
+  "tags": []
+}

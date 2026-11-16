@@ -1,0 +1,34 @@
+services:
+  home-assistant-mcp:
+    image: ghcr.io/homeassistant-ai/ha-mcp:9.2.0
+    container_name: home-assistant-mcp
+    restart: unless-stopped
+    command: ["ha-mcp-web"]
+    ports:
+      - "${SSE_PORT:-3011}:${SSE_PORT:-3011}"
+    environment:
+      - HOMEASSISTANT_URL=${HOMEASSISTANT_URL:-http://127.0.0.1:8123}
+      - HOMEASSISTANT_TOKEN=${HOMEASSISTANT_TOKEN}
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=${SSE_PORT:-3011}
+      - MCP_SECRET_PATH=/mcp
+      - MCP_HEALTHZ=true
+      - HA_MCP_DISABLE_SETTINGS_UI=true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"MCP_PORT\", \"3011\")}/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - hass-mcp-data:/home/mcpuser/.ha-mcp
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  hass-mcp-data:
+    driver: local

@@ -1,0 +1,25 @@
+services:
+  blinko-mcp:
+    build:
+      context: .
+    container_name: blinko-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-8442}:${SSE_PORT:-8442}"
+    environment:
+      - BLINKO_URL=${BLINKO_URL:-https://127.0.0.1:8443}
+      - BLINKO_TOKEN=${BLINKO_TOKEN}
+      - SSE_PORT=${SSE_PORT:-8442}
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${SSE_PORT:-8442}/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

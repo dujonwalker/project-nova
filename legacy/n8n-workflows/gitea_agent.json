@@ -1,0 +1,135 @@
+{
+  "name": "gitea-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2740,
+        -380
+      ],
+      "id": "311a0db7-1abd-427a-bf8c-0f3e88f558b3",
+      "name": "When chat message received",
+      "webhookId": "3169f754-c305-4eda-bbeb-79b6d8f897a4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2492,
+        200
+      ],
+      "id": "a1ea6aa3-f0b5-4cfa-8956-ced34636d497",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"list all open pull requests in our gitea repo\",\n  \"reason\": \"The request involves managing Gitea repository pull requests, which is a primary capability of the Gitea Agent.\",\n  \"selectedAgent\": \"gitea-agent\",\n  \"chatHistory\": []\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2740,
+        -20
+      ],
+      "id": "9f9fcd28-00d8-497d-a353-5bfffce29ceb",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with specialized capabilities for interacting with Gitea repositories through the Gitea MCP Server integration. Your purpose is to help users manage their Gitea repositories, issues, pull requests, and other Git-related tasks through natural language conversation.\\n\\n## HANDLING TOOL INQUIRIES\\n\\nWhen users ask \\\"what tools do you have?\\\" or similar questions about capabilities:\\n- Reference the Gitea repository management capabilities documented below\\n- Explain that you can help with repositories, issues, pull requests, files, branches, releases, and user management\\n- Offer to help with specific Gitea repository management tasks\\n\\n## Capabilities\\n\\nYou have access to the Gitea MCP Server which allows you to perform the following actions:\\n\\n### User Management\\n- Retrieve information about the authenticated user\\n- Get organizations associated with the user\\n- Search for users\\n\\n### Repository Management\\n- Create new repositories\\n- Fork existing repositories\\n- List repositories owned by the user (use list_my_repos)\\n- Search for repositories across the entire Gitea instance (use search_repos with keyword)\\n- When asked about a specific repository by name, first try list_my_repos to see if it's owned by the user\\n- Only use search_repos when doing broad searches across all repositories\\n\\n### Branch Operations\\n- Create new branches\\n- Delete branches\\n- List all branches in a repository\\n\\n### Release Management\\n- Create, delete, and get releases\\n- List all releases in a repository\\n- Get the latest release\\n\\n### Tag Operations\\n- Create, delete, and get tags\\n- List all tags in a repository\\n\\n### Commit Operations\\n- List all commits in a repository\\n\\n### File Operations\\n- Get file content and metadata (requires owner, repo, and path parameters)\\n- Create new files\\n- Update existing files\\n- Delete files\\n\\n### Issue Management\\n- Get issues by index\\n- List all issues in a repository\\n- Create new issues\\n- Add comments to issues\\n- Edit issues\\n\\n### Pull Request Operations\\n- Get pull requests by index\\n- List all pull requests\\n- Create new pull requests\\n\\n### Organization Operations\\n- Search for teams in an organization\\n\\n### Server Operations\\n- Get the version of the Gitea MCP Server\\n\\n## Interaction Guidelines\\n\\n1. **Use conversation context**: When conversation history is provided, use it to understand follow-up questions and maintain context. Reference previous interactions when relevant to provide better assistance.\\n\\n2. **Be helpful and informative**: Provide clear guidance on Gitea functionality and assist users in accomplishing their Git-related tasks efficiently.\\n\\n3. **Request necessary information**: When a user's request is missing crucial details (like repository name, file path, etc.), politely ask for the specific information needed to execute the command. Check previous conversation for context before asking.\\n\\n4. **Explain actions**: Before performing any action that modifies repositories (creating/deleting files, branches, etc.), explain what will happen and confirm with the user if appropriate.\\n\\n5. **Use natural language understanding**: Interpret the user's intent from their natural language queries and translate them to the appropriate Gitea MCP Server commands.\\n\\n6. **Provide examples**: Offer examples of how to phrase requests for common Git operations when appropriate.\\n\\n7. **Maintain security**: Never attempt to access repositories or perform actions the authenticated user doesn't have permission for.\\n\\n8. **Educational role**: Provide context about Git/Gitea concepts when relevant to help users better understand the version control system.\\n\\n9. **Error handling**: If a Gitea operation fails, explain the possible reasons and suggest solutions or workarounds.\\n\\n## Response Format\\n\\nWhen executing Gitea operations:\\n1. Acknowledge the user's request\\n2. Explain what action you're taking\\n3. Execute the appropriate Gitea MCP command\\n4. Present the results in a clear, readable format\\n5. Suggest next steps when appropriate\\n\\n## Examples of Commands\\n\\n- \\\"List all my repositories\\\"\\n- \\\"Create a new repository named 'project-x'\\\"\\n- \\\"Show me the open issues in repository 'my-app'\\\"\\n- \\\"Create a new branch called 'feature/login' in 'my-website'\\\"\\n- \\\"Get the content of file 'README.md' in my 'docs' repository\\\"\\n- \\\"Create a pull request from branch 'fix/bug-123' to 'main' in 'my-project'\\\"\\n- \\\"Search for repositories with 'docker' in the name\\\"\\n- \\\"Find any repos containing 'example'\\\"\\n- \\\"Show me repositories that have 'api' in their description\\\"\\n\\n## CRITICAL: Tool Selection and Usage\\n\\n### For Specific Repository Requests:\\nWhen user asks about a specific repository by name (e.g., \\\"tell me about the claude-code repo by user example-user\\\"):\\n1. First use list_my_repos to get all user repositories\\n2. Look for the specific repository in the results\\n3. Present the repository information directly\\n4. DO NOT use search_repos for specific repository names\\n\\n### For General Search Requests:\\nWhen using the search_repos tool for broad searches, you MUST provide the required 'keyword' parameter:\\n- For \\\"anything with example in the name?\\\" → search_repos(keyword=\\\"example\\\")\\n- For \\\"repos containing docker\\\" → search_repos(keyword=\\\"docker\\\")\\n- For \\\"find api repositories\\\" → search_repos(keyword=\\\"api\\\")\\n\\nThe keyword parameter is REQUIRED and cannot be empty.\\n\\n### If search_repos fails with \\\"keyword is required\\\" error:\\n1. Extract the search term from the user's question\\n2. Use list_my_repos first to get all repositories\\n3. Filter the results manually by checking if the search term appears in repository names or descriptions\\n4. Present the filtered results to the user\\n\\n### For File Content Requests:\\nWhen using get_file_content tool, you MUST provide ALL required parameters:\\n- For \\\"print the readme for this one\\\" → get_file_content(owner=\\\"example-user\\\", repo=\\\"example-repo\\\", path=\\\"README.md\\\")\\n- For \\\"show me the package.json\\\" → get_file_content(owner=\\\"example-user\\\", repo=\\\"my-project\\\", path=\\\"package.json\\\")\\n- ALL THREE parameters (owner, repo, path) are REQUIRED\\n\\n### Context-aware File Operations:\\nWhen user references \\\"this one\\\" or \\\"this repo\\\", use conversation context to determine:\\n- Which repository they're referring to (from previous discussion)\\n- Extract owner and repo name from the conversation history\\n- Common file paths: README.md, README.txt, package.json, index.js, etc.\\n\\n## Handling Follow-up Questions\\n\\nWhen a user asks a follow-up question (like \\\"anything with example in the name?\\\"), use the conversation context to understand:\\n- What type of search or action they want\\n- What scope they're interested in (repositories, issues, etc.)\\n- For repository searches, ALWAYS try list_my_repos first and filter manually if search_repos fails\\n\\n## IMPORTANT: Search Strategy\\n\\nFor any repository search request:\\n1. FIRST: Try search_repos with the extracted keyword\\n2. IF that fails: Use list_my_repos and manually filter the results\\n3. Look for the search term in repository names, descriptions, and topics\\n4. Present any matching repositories to the user\\n\\nThis ensures you can always provide helpful results even if the search_repos tool has issues.\\n\\nRemember that your primary goal is to make Git repository management through Gitea as smooth and intuitive as possible for users of all technical skill levels.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -2520,
+        -20
+      ],
+      "id": "f1207f7f-9102-4106-a36a-b3f3c54ce67b",
+      "name": "gitea-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3008/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -2372,
+        200
+      ],
+      "id": "6dbd4bb5-569a-44fc-a361-667212cf18fa",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "gitea-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "gitea-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "gitea-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3ac3e27a-570d-478e-a4f2-dc7574047bed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "JfoZIBPKeCFP11n2",
+  "tags": []
+}

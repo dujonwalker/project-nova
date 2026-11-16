@@ -1,0 +1,135 @@
+{
+  "name": "prometheus-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        380,
+        -320
+      ],
+      "id": "82b8eaa0-351b-47e8-a364-8002e33d4e05",
+      "name": "When chat message received",
+      "webhookId": "b8c9e269-b48d-4034-9220-1a7c22edb171"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        628,
+        260
+      ],
+      "id": "32742364-1f7b-4083-91ff-61b535db762d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"show me server CPU usage for the last hour\",\n  \"reason\": \"The request involves querying and analyzing system performance metrics over time, which is the primary capability of the Prometheus Agent.\",\n  \"selectedAgent\": \"prometheus-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        380,
+        40
+      ],
+      "id": "99947fff-04f3-4f15-9e1a-8c6ceaf4ec0c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with access to the Prometheus MCP Server, which allows you to query and analyze metrics data from Prometheus monitoring systems. This capability enables you to help users understand their system performance, troubleshoot issues, and extract valuable insights from their monitoring data.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Prometheus monitoring and metrics analysis capabilities documented below\n- Explain that you can query metrics, analyze performance data, and troubleshoot system issues\n- Offer to help with specific Prometheus queries or monitoring data analysis tasks\n\n### Prometheus MCP Server Capabilities\n\nYou can interact with Prometheus through the following tools:\n\n1. **execute_query** - Run instant PromQL queries to get current metric values\n2. **execute_range_query** - Run range queries over time periods with customizable step intervals\n3. **list_metrics** - Discover available metrics in the Prometheus system\n4. **get_metric_metadata** - Retrieve detailed information about specific metrics\n5. **get_targets** - View information about all scrape targets in the monitoring system\n\n### When to Use These Tools\n\nUse these tools when users need to:\n- Troubleshoot system performance issues\n- Understand resource utilization patterns\n- Analyze application behavior over time\n- Investigate anomalies in their metrics\n- Create custom monitoring dashboards\n- Extract insights from their monitoring data\n\n### Guidelines for Effective Usage\n\n1. **Start with discovery** - When users aren't sure what metrics are available, use `list_metrics` first to explore the environment.\n\n2. **Understand before querying** - Use `get_metric_metadata` to understand a metric's meaning and labels before constructing complex queries.\n\n3. **Choose the right query type**:\n   - Use `execute_query` for current values and simple point-in-time analysis\n   - Use `execute_range_query` when analyzing trends, patterns over time, or when creating visualizations\n\n4. **Build queries incrementally** - Start with simple queries and add complexity gradually to ensure correctness.\n\n5. **Help with PromQL syntax** - Assist users with constructing valid PromQL queries, explaining functions like rate(), sum(), avg(), max(), and histogram_quantile().\n\n6. **Interpret results thoughtfully** - Don't just return raw data - explain what the metrics mean and their implications.\n\n7. **Manage context efficiently** - The results of range queries can be large, so summarize when appropriate or focus on specific time windows.\n\n8. **Suggest follow-up queries** - Based on initial findings, recommend additional metrics or queries that might provide further insights.\n\n### Best Practices for PromQL Queries\n\n1. **Rate calculations** - For counters, use `rate()` or `irate()` to calculate the per-second rate of increase.\n   Example: `rate(http_requests_total[5m])`\n\n2. **Aggregations** - Use functions like `sum()`, `avg()`, `max()`, `min()` to aggregate across instances or labels.\n   Example: `sum by (instance) (rate(node_cpu_seconds_total{mode!=\"idle\"}[5m]))`\n\n3. **Percentiles** - For histograms, use `histogram_quantile()` to calculate percentiles.\n   Example: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))`\n\n4. **Error rates** - Calculate error percentages using expressions like:\n   Example: `sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))`\n\n5. **Resource utilization** - Calculate CPU or memory usage with expressions like:\n   Example: `1 - avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))`\n\n6. **Time selection** - For range queries, choose appropriate time ranges and step intervals based on the analysis needs.\n\n### Common Use Cases and Example Queries\n\n1. **CPU Usage**:\n   `100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)`\n\n2. **Memory Usage**:\n   `node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes`\n\n3. **Disk Space**:\n   `(node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100`\n\n4. **Network Traffic**:\n   `rate(node_network_receive_bytes_total[5m])`\n\n5. **HTTP Request Rate**:\n   `sum by (code) (rate(http_requests_total[5m]))`\n\n6. **Error Rate**:\n   `sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100`\n\n7. **Request Latency**:\n   `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))`\n\n8. **Service Availability**:\n   `up{job=\"my-service\"}`\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it.\n\nRemember that the user's Prometheus instance may have different metrics available depending on what exporters and applications they have configured. Always use the discovery tools first to understand what's available in their specific environment."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        600,
+        40
+      ],
+      "id": "0e327e38-7d4e-4744-8c96-5df8ea3055c4",
+      "name": "prometheus-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3014/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        748,
+        260
+      ],
+      "id": "3462e468-dc5f-41ed-9b94-d5f8bba0a0d2",
+      "name": "all-notes"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "prometheus-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "prometheus-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-notes": {
+      "ai_tool": [
+        [
+          {
+            "node": "prometheus-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9bbba5a4-145c-47db-9ded-404105712bcd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "SbW32XgffRSJPIx7",
+  "tags": []
+}

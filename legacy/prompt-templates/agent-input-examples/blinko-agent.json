@@ -1,0 +1,5 @@
+{
+  "input": "create a quick note about today's meeting",
+  "reason": "The request is to create a note in the Blinko note service, which is exactly what the Blinko Agent is designed to handle.",
+  "selectedAgent": "blinko-agent"
+}

@@ -1,0 +1,5 @@
+{
+  "input": "turn off all the lights in the living room",
+  "reason": "The request involves controlling smart home devices (lights), which is exactly what the Home Assistant Agent is designed to handle.",
+  "selectedAgent": "home-assistant-agent"
+}

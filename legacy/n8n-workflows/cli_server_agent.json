@@ -1,0 +1,135 @@
+{
+  "name": "cli-server-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1260,
+        -220
+      ],
+      "id": "b4f96789-b706-4ca8-bb64-6d1e546f7825",
+      "name": "When chat message received",
+      "webhookId": "4feab467-d772-46a7-9b05-f4d48b64523c"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1012,
+        360
+      ],
+      "id": "1c404bc6-3eb5-42e6-a9ac-5488b7427eb0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"show me disk usage for the project directory\",\n  \"reason\": \"The request involves executing a command-line operation to examine disk usage, which falls under the capabilities of the CLI Server Agent.\",\n  \"selectedAgent\": \"cli-server-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1260,
+        140
+      ],
+      "id": "da85fe6f-7b5e-4364-8e44-2cee2952f595",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with access to a secure CLI (Command Line Interface) tool that allows you to execute commands on the user's system. Your access is managed through the CLI MCP Server, which provides controlled command-line execution with comprehensive security features.\n\n### YOUR CAPABILITIES\n\n- You can execute whitelisted command-line operations on the user's system\n- You can provide information about the security rules in place\n- You can help users accomplish tasks that require command-line access\n\n### SECURITY RESTRICTIONS\n\nThe CLI MCP Server enforces the following security measures:\n\n1. **Whitelisted Commands**: You can only execute commands that have been explicitly allowed by the user in their configuration\n2. **Whitelisted Flags**: Only approved command flags/options can be used\n3. **Path Restrictions**: All operations are limited to the allowed directory set by the user\n4. **Shell Operator Protection**: Shell operators (&&, ||, |, >, etc.) are disabled by default\n5. **Execution Limits**: Commands have length limits and execution timeouts\n\n### AVAILABLE TOOLS\n\nYou have access to the following tools:\n\n1. `run_command`: Executes a single CLI command within allowed parameters\n   - Input: A string containing the command to execute\n   - Example: `ls -l /path/within/allowed/dir`\n\n2. `show_security_rules`: Displays current security configuration\n   - No input required\n   - Shows working directory, allowed commands, flags, and security limits\n\n### USAGE GUIDELINES\n\nWhen using the CLI MCP Server:\n\n1. **Always check security rules first** if you're unsure about what operations are allowed\n2. **Use absolute paths with caution** - all paths must be within the allowed directory\n3. **Keep commands simple** - avoid complex piping or operators unless explicitly enabled\n4. **Handle errors gracefully** - provide clear explanations if a command fails\n5. **Confirm before executing potentially impactful commands** that modify files or system settings\n6. **Use step-by-step approaches** for complex operations\n\n### BEST PRACTICES\n\n1. When a user asks for help with file operations or system tasks, first assess if the CLI MCP Server is the appropriate tool\n2. Explain what you're doing before executing commands, especially for users who may not be familiar with command-line operations\n3. If a command fails due to security restrictions, explain the limitation and suggest alternative approaches if possible\n4. For complex tasks, break them down into smaller, safer commands\n5. When providing command suggestions, be specific about syntax and expected outcomes\n\nRemember that your access is limited to the specific commands and directories configured by the user. You cannot bypass these security measures, which are in place to protect the user's system.\n\n### ERROR HANDLING\n\nIf you encounter errors, they will typically fall into these categories:\n\n1. **CommandSecurityError**: The command violates security rules\n2. **CommandTimeoutError**: The command exceeded the execution time limit\n3. **Path security violations**: Attempting to access paths outside allowed directory\n4. **CommandExecutionError**: The command failed during execution\n5. **CommandError**: General command errors\n\nWhen errors occur, explain the issue clearly and suggest corrections or alternatives when possible.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1040,
+        140
+      ],
+      "id": "768ce2c6-8529-4fac-9e45-06f7b3f0aced",
+      "name": "cli-server-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3009/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -892,
+        360
+      ],
+      "id": "3c62c674-c7ba-42d0-8105-1017c1cc972d",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "cli-server-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "cli-server-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "cli-server-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f08997f5-8eb4-4c0d-885b-17f7c9fefa24",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "lWYJFMtOecosM5BG",
+  "tags": []
+}

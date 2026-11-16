@@ -1,0 +1,35 @@
+{
+  "skill_name": "filesystem-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find all YAML files under the allowed directories containing 'timeout' and inspect lines 20 to 60 of the largest matching file without reading the whole file.",
+      "expected_output": "Calls list_allowed_directories first, uses search_files_content with pattern '*.yml' or '*.yaml' and query 'timeout' (or search_files + get_file_info), and reads lines 20-60 with read_file_lines (0-based offset 19, limit 41).",
+      "assertions": [
+        "Calls list_allowed_directories to discover permitted roots",
+        "Uses search_files_content with glob pattern and query",
+        "Uses read_file_lines with 0-based offset and limit instead of dumping full file"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Update port 8080 to 9090 in config.toml inside the allowed workspace, previewing the diff first before applying.",
+      "expected_output": "Reads with read_text_file(with_line_numbers=true), calls edit_file with dryRun=true and edits=[{oldText, newText}] to preview the git-style diff, then applies edit_file (dryRun=false) and notes that -w/--allow-write must be enabled on the server.",
+      "assertions": [
+        "Uses edit_file with oldText/newText instead of overwriting blindly with write_file",
+        "Previews change using dryRun=true",
+        "Recognizes write operations require -w/--allow-write"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Check for duplicate files larger than 1 MB in the shared archive folder and calculate its total human-readable size.",
+      "expected_output": "Calls find_duplicate_files with root_path, min_bytes=1048576 (note snake_case exclude_patterns if used), and calculate_directory_size with root_path and output_format='human-readable'.",
+      "assertions": [
+        "Uses find_duplicate_files with root_path and min_bytes",
+        "Uses calculate_directory_size with root_path and output_format='human-readable'",
+        "Respects snake_case exclude_patterns on find_duplicate_files"
+      ]
+    }
+  ]
+}

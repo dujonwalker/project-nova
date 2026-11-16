@@ -1,0 +1,38 @@
+{
+  "skill_name": "prometheus-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Check whether all node exporters are healthy in Prometheus and report CPU usage over the last 30 minutes at 1m resolution.",
+      "expected_output": "Call get_targets (active by default) or execute_query('up') to verify scrape health, then run execute_range_query with a CPU usage rate/irate query, start/end timestamps spanning 30m, and step='1m'.",
+      "files": [],
+      "assertions": [
+        "Uses get_targets or execute_query('up') rather than shell curl/CLI scripts",
+        "Uses execute_range_query with start, end, and step='1m' for rate/irate CPU trends",
+        "Does not embed credentials or REST URLs in the workflow"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We just added a new GPU exporter 30 seconds ago, but list_metrics isn't showing any nvidia_ metrics yet. Also inspect the unit and help text of the metric once found.",
+      "expected_output": "Call list_metrics with filter_pattern='nvidia_' and refresh_cache=true to bypass the 5-minute (300s) cache, then call get_metric_metadata with metric='<exact_name>'.",
+      "files": [],
+      "assertions": [
+        "Passes refresh_cache=true to list_metrics to bypass the 300s metrics cache",
+        "Uses filter_pattern to narrow results cleanly",
+        "Calls get_metric_metadata with metric='<name>' (and notes list return format vs bulk dict)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We want to connect two separate Prometheus environments (prod and staging) using pab1it0/prometheus-mcp-server over stateless Streamable HTTP and reduce token bloat in query outputs.",
+      "expected_output": "Configure two server instances with distinct TOOL_PREFIX values (e.g. prod and staging), PROMETHEUS_MCP_SERVER_TRANSPORT=http, PROMETHEUS_MCP_STATELESS_HTTP=true, PROMETHEUS_MCP_BIND_HOST=0.0.0.0, and PROMETHEUS_DISABLE_LINKS=true.",
+      "files": [],
+      "assertions": [
+        "Recommends TOOL_PREFIX for differentiating multiple Prometheus server instances",
+        "Recommends PROMETHEUS_MCP_SERVER_TRANSPORT=http and PROMETHEUS_MCP_STATELESS_HTTP=true",
+        "Recommends PROMETHEUS_DISABLE_LINKS=true to omit Prometheus UI links and save tokens"
+      ]
+    }
+  ]
+}

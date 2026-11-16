@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Save a quick flash thought to Blinko about testing the new router firmware.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search my Blinko notes for Docker Compose backup notes from last month.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show my Blinko daily review notes for today and list open Blinko todos.",
+    "should_trigger": true
+  },
+  {
+    "query": "Promote Blinko flash note 42 into a regular note and generate a password-protected share link.",
+    "should_trigger": true
+  },
+  {
+    "query": "Move Blinko note 17 to the recycle bin.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check why blinko-mcp-server is failing TLS verification or configure SSE_PORT.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a new short memo in Memos tagged #self-hosted environment.",
+    "should_trigger": false
+  },
+  {
+    "query": "Search my TriliumNext note tree for the PostgreSQL migration checklist.",
+    "should_trigger": false
+  },
+  {
+    "query": "Update the self-hosted environment architecture page in Outline wiki.",
+    "should_trigger": false
+  },
+  {
+    "query": "Bookmark this GitHub repository in Karakeep and add the 'mcp' tag.",
+    "should_trigger": false
+  },
+  {
+    "query": "Find my scanned utility bill PDF in Paperless-ngx.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a new chapter inside our Infrastructure book in BookStack.",
+    "should_trigger": false
+  }
+]

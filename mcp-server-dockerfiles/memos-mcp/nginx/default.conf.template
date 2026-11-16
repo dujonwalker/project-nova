@@ -1,0 +1,33 @@
+server {
+    listen ${SSE_PORT};
+    server_name _;
+
+    client_max_body_size 256m;
+
+    location = /health {
+        default_type application/json;
+        return 200 '{"status":"ok","upstream":"${MEMOS_UPSTREAM_URL}/mcp"}';
+    }
+
+    location = /healthz {
+        default_type application/json;
+        return 200 '{"status":"ok","upstream":"${MEMOS_UPSTREAM_URL}/mcp"}';
+    }
+
+    location /mcp {
+        proxy_pass ${MEMOS_UPSTREAM_URL}/mcp;
+        proxy_http_version 1.1;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Origin "";
+        proxy_set_header Authorization "Bearer ${MEMOS_API_KEY}";
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+
+    location / {
+        default_type application/json;
+        return 404 '{"error":"Not found. Use /mcp for Streamable HTTP."}';
+    }
+}

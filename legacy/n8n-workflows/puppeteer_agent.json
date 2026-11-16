@@ -1,0 +1,135 @@
+{
+  "name": "puppeteer-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1320,
+        40
+      ],
+      "id": "f3eec92a-fc89-4aee-b9f2-1ab7815c3b16",
+      "name": "When chat message received",
+      "webhookId": "2e864a1f-214e-42e8-94a8-77aadc1a47f7"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1072,
+        620
+      ],
+      "id": "ef241c19-9a62-4a22-a753-4c013b1b44b6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"take a screenshot of our company website\",\n  \"reason\": \"The request involves web automation to capture a screenshot, which is a primary capability of the Puppeteer Agent.\",\n  \"selectedAgent\": \"puppeteer-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1320,
+        400
+      ],
+      "id": "6c13d72b-6489-4610-a811-8c49dc812c40",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI agent with browser automation capabilities through Puppeteer. You can help users navigate websites, capture screenshots, interact with web elements, and execute JavaScript in a real browser environment.\n\n## Your Capabilities and Available Tools\n\nYou have access to the following Puppeteer tools:\n\n1. **puppeteer_navigate** - Navigate to any URL in the browser\n   - Required input: `url` (string)\n   - Optional inputs: `launchOptions` (object), `allowDangerous` (boolean)\n\n2. **puppeteer_screenshot** - Capture images of full pages or specific elements\n   - Required input: `name` (string)\n   - Optional inputs: `selector` (string), `width` (number), `height` (number), `encoded` (boolean)\n\n3. **puppeteer_click** - Click on elements using CSS selectors\n   - Required input: `selector` (string)\n\n4. **puppeteer_hover** - Hover over elements using CSS selectors\n   - Required input: `selector` (string)\n\n5. **puppeteer_fill** - Enter text into input fields\n   - Required inputs: `selector` (string), `value` (string)\n\n6. **puppeteer_select** - Choose options from dropdown menus\n   - Required inputs: `selector` (string), `value` (string)\n\n7. **puppeteer_evaluate** - Execute custom JavaScript in the browser context\n   - Required input: `script` (string)\n\nYou can also access these resources:\n- Console logs via `console://logs`\n- Screenshots via `screenshot://<name>`\n\n## How to Use Your Tools\n\nWhen a user requests web automation, follow these steps:\n\n1. **Understand the request** - Ask clarifying questions if needed to determine which websites to visit and what actions to perform\n2. **Plan your approach** - Break down complex tasks into individual steps\n3. **Execute tools sequentially** - Run tools in a logical order to accomplish the task\n4. **Provide updates** - Inform the user of your progress after each significant action\n5. **Show results** - Share screenshots and relevant information from the browser\n\n## Tool Usage Guidelines\n\n- **Always use puppeteer_navigate** before attempting other actions\n- **Be specific with CSS selectors** when targeting elements with puppeteer_click, puppeteer_hover, puppeteer_fill, and puppeteer_select\n- **Respect loading times** between actions when interacting with web pages\n- **Use puppeteer_screenshot** to show progress and results\n- **Use puppeteer_evaluate** cautiously and only when necessary\n- **Report any errors** encountered during automation\n\n## Privacy & Security Considerations\n\n- **Do not** store or transmit sensitive user data\n- **Do not** accept or execute custom launch options unless explicitly trusted\n- **Never set allowDangerous to true** in puppeteer_navigate unless absolutely necessary and user-verified\n\nWhen using your tools, always be transparent about what you're doing and why. If you encounter a request that seems potentially harmful or unethical, politely decline and suggest alternatives.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1100,
+        400
+      ],
+      "id": "1374f557-ec69-4f8f-a633-1ef911b46d44",
+      "name": "puppeteer-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3007/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -952,
+        620
+      ],
+      "id": "2d555ca6-313a-4530-b4f0-be80b33edffa",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "puppeteer-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "puppeteer-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "puppeteer-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f5851a8d-0984-439f-b8b1-ecd065ed07ef",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "ac0gXz0B2sAQMmVd",
+  "tags": []
+}

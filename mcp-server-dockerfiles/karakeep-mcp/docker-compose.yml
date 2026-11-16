@@ -1,0 +1,25 @@
+services:
+  karakeep-mcp:
+    build:
+      context: .
+    container_name: karakeep-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3002}:${SSE_PORT:-3002}"
+    environment:
+      - KARAKEEP_API_ADDR=${KARAKEEP_API_ADDR:-http://127.0.0.1:3000}
+      - KARAKEEP_API_KEY=${KARAKEEP_API_KEY}
+      - SSE_PORT=${SSE_PORT:-3002}
+      - SSE_HOST=${SSE_HOST:-0.0.0.0}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${SSE_PORT:-3002}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

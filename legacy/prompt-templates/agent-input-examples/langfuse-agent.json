@@ -1,0 +1,5 @@
+{
+  "input": "find a product description prompt in langfuse",
+  "reason": "The request involves accessing managed prompts from Langfuse, which is the core functionality of the Langfuse Agent.",
+  "selectedAgent": "langfuse-agent"
+}

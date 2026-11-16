@@ -1,0 +1,117 @@
+diff --git a/MCP_Server/server.py b/MCP_Server/server.py
+index 770119a..dbd7205 100644
+--- a/MCP_Server/server.py
++++ b/MCP_Server/server.py
+@@ -1,5 +1,7 @@
+ # ableton_mcp_server.py
+ from mcp.server.fastmcp import FastMCP, Context
++from mcp.server.transport_security import TransportSecuritySettings
++from starlette.responses import JSONResponse
+ import socket
+ import json
+ import logging
+@@ -14,7 +16,36 @@ from .telemetry_decorator import telemetry_tool, rich_telemetry_tool
+ from .dataset import dataset_enabled, get_recorder
+ from .dataset.trajectory_decorator import trajectory_tool
+
+-ABLETON_HOST = os.environ.get("ABLETON_HOST", "localhost")
++
++def _env_bool(name: str, default: bool) -> bool:
++    raw = os.environ.get(name)
++    if raw is None or not raw.strip():
++        return default
++    return raw.strip().lower() in ("1", "true", "yes", "on")
++
++
++def _normalize_ableton_env() -> None:
++    """Normalize blank env vars and support ABLETON_IP fallback."""
++    if not os.environ.get("ABLETON_HOST", "").strip():
++        os.environ.pop("ABLETON_HOST", None)
++    if not os.environ.get("ABLETON_PORT", "").strip():
++        os.environ.pop("ABLETON_PORT", None)
++
++    ableton_ip = os.environ.get("ABLETON_IP", "").strip()
++    if ableton_ip and "ABLETON_HOST" not in os.environ:
++        os.environ["ABLETON_HOST"] = ableton_ip
++
++    os.environ.setdefault("ABLETON_HOST", "host.docker.internal")
++
++
++def _is_http_transport() -> bool:
++    transport = os.environ.get("MCP_TRANSPORT", "streamable-http").strip().lower() or "streamable-http"
++    return transport in ("streamable-http", "sse")
++
++
++_normalize_ableton_env()
++
++ABLETON_HOST = os.environ.get("ABLETON_HOST", "host.docker.internal")
+ ABLETON_PORT = int(os.environ.get("ABLETON_PORT", "9877"))
+
+ # Configure logging
+@@ -207,15 +238,16 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
+             logger.debug(f"Failed to record startup telemetry: {e}")
+
+         script_info = None
+-        try:
+-            ableton = get_ableton_connection()
+-            logger.info("Successfully connected to Ableton on startup")
+-            from .script_handshake import handshake
++        if not _is_http_transport() or _env_bool("ABLETON_EAGER_CONNECT", False):
++            try:
++                ableton = get_ableton_connection()
++                logger.info("Successfully connected to Ableton on startup")
++                from .script_handshake import handshake
+
+-            script_info = handshake(ableton.send_command)
+-        except Exception as e:
+-            logger.warning(f"Could not connect to Ableton on startup: {str(e)}")
+-            logger.warning("Make sure the Ableton Remote Script is running")
++                script_info = handshake(ableton.send_command)
++            except Exception as e:
++                logger.warning(f"Could not connect to Ableton on startup: {str(e)}")
++                logger.warning("Make sure the Ableton Remote Script is running")
+
+         if dataset_enabled():
+             try:
+@@ -263,7 +295,7 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
+             stop_passive_poller()
+         except Exception as e:
+             logger.debug(f"Failed to stop passive poller: {e}")
+-        if _ableton_connection:
++        if _ableton_connection and (not _is_http_transport() or not _env_bool("MCP_STATELESS_HTTP", True)):
+             logger.info("Disconnecting from Ableton on shutdown")
+             _ableton_connection.disconnect()
+             _ableton_connection = None
+@@ -282,9 +314,20 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
+ # Create the MCP server with lifespan support
+ mcp = FastMCP(
+     "AbletonMCP",
+-    lifespan=server_lifespan
++    lifespan=server_lifespan,
++    host=os.environ.get("SSE_HOST", "0.0.0.0").strip() or "0.0.0.0",
++    port=int((os.environ.get("SSE_PORT") or "3013").strip()),
++    stateless_http=_env_bool("MCP_STATELESS_HTTP", True),
++    json_response=_env_bool("MCP_JSON_RESPONSE", False),
++    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+ )
+
++
++@mcp.custom_route("/health", methods=["GET"])
++@mcp.custom_route("/healthz", methods=["GET"])
++async def health(_request):
++    return JSONResponse({"status": "ok", "server": "ableton-mcp", "version": "1.4.5"})
++
+ # Global connection for resources
+ _ableton_connection = None
+
+@@ -1560,7 +1603,8 @@ def record_audition(
+ # Main execution
+ def main():
+     """Run the MCP server"""
+-    mcp.run()
++    transport = os.environ.get("MCP_TRANSPORT", "streamable-http").strip() or "streamable-http"
++    mcp.run(transport=transport)
+
+ if __name__ == "__main__":
+     main()
+\ No newline at end of file

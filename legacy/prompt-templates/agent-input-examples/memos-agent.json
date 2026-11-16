@@ -1,0 +1,5 @@
+{
+  "input": "create a new memo about the client call",
+  "reason": "The request asks to create a new memo, which is one of the core capabilities of the Memos Agent.",
+  "selectedAgent": "memos-agent"
+}

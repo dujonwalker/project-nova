@@ -1,0 +1,31 @@
+services:
+  playwright-mcp:
+    image: mcr.microsoft.com/playwright/mcp:v0.0.85
+    container_name: playwright-mcp
+    restart: unless-stopped
+    command:
+      - "--host"
+      - "${SSE_HOST:-0.0.0.0}"
+      - "--port"
+      - "${SSE_PORT:-3007}"
+      - "--allowed-hosts"
+      - "*"
+      - "--isolated"
+      - "--output-dir"
+      - "/tmp/playwright-mcp"
+    ports:
+      - "${SSE_PORT:-3007}:${SSE_PORT:-3007}"
+    environment:
+      - SSE_PORT=${SSE_PORT:-3007}
+    healthcheck:
+      test: ["CMD", "node", "-e", "const s=require('net').connect(Number(process.env.SSE_PORT||'3007'),'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

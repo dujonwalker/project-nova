@@ -1,0 +1,25 @@
+services:
+  cli-server-mcp:
+    image: nginx:alpine
+    container_name: cli-server-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3009}:${SSE_PORT:-3009}"
+    environment:
+      - SSE_PORT=${SSE_PORT:-3009}
+      - CLI_UPSTREAM_URL=${CLI_UPSTREAM_URL:?Set CLI_UPSTREAM_URL to http://<agent-vm-ip>:3009}
+      - NGINX_ENVSUBST_FILTER=^(SSE_PORT|CLI_UPSTREAM_URL)$
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${SSE_PORT:-3009}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

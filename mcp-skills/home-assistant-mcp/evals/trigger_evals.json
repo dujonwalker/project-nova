@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Turn off the bedroom lights and check the thermostat temperature in Home Assistant.",
+    "should_trigger": true
+  },
+  {
+    "query": "Debug why my Home Assistant hallway motion automation did not fire last night using traces.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search my Home Assistant entities for Smart Plug sensors and update their friendly names.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a Home Assistant dashboard card and take a screenshot to verify the layout.",
+    "should_trigger": true
+  },
+  {
+    "query": "Consult ha_get_skill_guide and add a new input_boolean helper via home-assistant-mcp.",
+    "should_trigger": true
+  },
+  {
+    "query": "Configure ha-mcp-web with ENABLE_TOOL_SEARCH=true and a custom MCP_SECRET_PATH.",
+    "should_trigger": true
+  },
+  {
+    "query": "Query Prometheus for container CPU usage over the last 24 hours.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check Uptime Kuma monitors for our public websites.",
+    "should_trigger": false
+  },
+  {
+    "query": "Play an album in Music Assistant on the kitchen Chromecast.",
+    "should_trigger": false
+  },
+  {
+    "query": "Search my Paperless-ngx receipts for smart switch purchases.",
+    "should_trigger": false
+  },
+  {
+    "query": "Unblock a domain in Pi-hole DNS for 5 minutes.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check UniFi Wi-Fi clients and restart an access point.",
+    "should_trigger": false
+  }
+]

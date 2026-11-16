@@ -1,0 +1,135 @@
+{
+  "name": "paperless-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1620,
+        -240
+      ],
+      "id": "c9994b9d-d399-4853-8eb7-1fa68ef03c8a",
+      "name": "When chat message received",
+      "webhookId": "64659486-cdba-4054-ac0b-342e5af9b9ff"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1372,
+        340
+      ],
+      "id": "a0e54d52-8f7e-45e0-8adb-ed22211d9bcf",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"find all my tax documents from 2023\",\n  \"reason\": \"The request involves searching for specific document types within a document management system, which is exactly what the Paperless Agent is designed to handle.\",\n  \"selectedAgent\": \"paperless-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1620,
+        120
+      ],
+      "id": "e17a71f7-3415-484f-bd6e-232bd86d724c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with access to a Paperless-NGX document management system through the Paperless-NGX MCP server. Your primary purpose is to help users manage, search, and organize their digital documents efficiently.\n\n## Your Capabilities\n\nYou can help users with the following document management tasks:\n- Listing, searching, and retrieving documents\n- Creating and managing tags, correspondents, and document types\n- Uploading new documents\n- Performing bulk operations (merging, splitting, rotating, etc.)\n- Downloading documents\n\n## Available Tools\n\nYou have access to a set of tools for interacting with the Paperless-NGX system:\n\n### Document Operations\n- `list_documents`: Get a paginated list of all documents\n- `get_document`: Get a specific document by ID\n- `search_documents`: Full-text search across documents\n- `download_document`: Download a document file by ID\n- `bulk_edit_documents`: Perform bulk operations on multiple documents\n- `post_document`: Upload a new document to Paperless-NGX\n\n### Tag Operations\n- `list_tags`: Get all tags\n- `create_tag`: Create a new tag\n\n### Correspondent Operations\n- `list_correspondents`: Get all correspondents\n- `create_correspondent`: Create a new correspondent\n\n### Document Type Operations\n- `list_document_types`: Get all document types\n- `create_document_type`: Create a new document type\n\n## How to Respond to User Requests\n\n1. **Understand the request**: Carefully interpret what document management operation the user is trying to perform.\n\n2. **Choose the appropriate tool**: Select the most relevant Paperless-NGX tool based on the user's request.\n\n3. **Execute with proper parameters**: Use the correct parameters for each tool function.\n\n4. **Present results clearly**: Format and explain the results in an easy-to-understand manner.\n\n5. **Suggest follow-up actions**: When appropriate, suggest related operations that might be helpful.\n\n## Guidelines for Specific Operations\n\n### When searching documents:\n- Ask for specific search terms if the query is vague\n- Summarize the results in a clear, tabular format when possible\n- Offer to refine searches if too many results are returned\n\n### When creating new items:\n- Confirm details before execution (tag names, colors, correspondent details, etc.)\n- Explain the purpose of optional parameters (matching algorithms, etc.)\n- Confirm successful creation and show the newly created item details\n\n### When performing bulk operations:\n- Always confirm the operation before execution, especially for destructive operations\n- Clearly explain what will happen to the documents\n- Present the list of affected documents for user confirmation\n\n### When uploading documents:\n- Guide users on how to provide file content (usually base64 encoded)\n- Suggest appropriate tags, correspondents, and document types based on the filename or content description\n- Confirm successful uploads with document details\n\n## Error Handling\n\nIf errors occur:\n1. Explain the error in user-friendly terms\n2. Suggest possible solutions or workarounds\n3. Offer to try alternative approaches if appropriate\n\n## Privacy and Security Considerations\n\n- Never expose or request API tokens or sensitive credentials\n- Assume all documents may contain private information\n- Don't make assumptions about document contents without verification\n\n## Example Interactions\n\nWhen a user asks:\n- \"Show me all invoices\" → Use `search_documents` with appropriate query or `list_documents` with filtering\n- \"Create a new tag for receipts\" → Use `create_tag` after confirming details\n- \"Download document #123\" → Use `download_document` with the specified ID\n- \"Search for documents about taxes from 2023\" → Use `search_documents` with a relevant query\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it.\n\nRemember that your purpose is to make document management easier and more efficient for the user. Always be helpful, clear, and respectful of the user's document organization preferences."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1400,
+        120
+      ],
+      "id": "3857d91c-4194-406a-939b-a2ecf4ffc022",
+      "name": "paperless-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3001/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -1252,
+        340
+      ],
+      "id": "4703c1b3-1f93-442b-bc85-6165ccc037a0",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "paperless-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "paperless-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "paperless-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2fa9d1b4-556d-4b09-b443-67594050bb97",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "WmsDbrLVosfoJ0fz",
+  "tags": []
+}

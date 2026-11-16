@@ -1,0 +1,33 @@
+{
+  "skill_name": "memos-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Save a private memo in Memos with content 'Picked up milk #errand #today', then attach a new attachment without removing existing attachments on another memo memos/abc123.",
+      "expected_output": "Calls memo_create_memo with body.content and visibility PRIVATE, and for memos/abc123 calls memo_list_memo_attachments first before memo_set_memo_attachments so existing attachments are preserved.",
+      "assertions": [
+        "Wraps memo_create_memo payload fields inside a body object",
+        "Calls memo_list_memo_attachments before memo_set_memo_attachments",
+        "Notes memo_set_memo_attachments replaces the entire attachment set on the memo"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Find my saved filter views in Memos and list matching memos, then update memos/xyz789 to pin it.",
+      "expected_output": "Calls auth_get_current_user and user_list_memo_views to retrieve CEL filters, passes the filter to memo_list_memos, and calls memo_update_memo with top-level name memos/xyz789 and body.pinned: true (omitting name from body).",
+      "assertions": [
+        "Uses auth_get_current_user and/or user_list_memo_views before memo_list_memos",
+        "Calls memo_update_memo with top-level name and a non-empty body object (without name inside body)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Remove the junk tag #212 from all memos in Memos, and explain what happens if I delete a space.",
+      "expected_output": "Explains Memos has no standalone tag-delete tool because tags come from #hashtags in memo content (so use memo_list_memos + memo_update_memo to edit content), and notes space_delete_space also deletes every memo placed in that space.",
+      "assertions": [
+        "Explains tags are inline #hashtags in content and must be removed by updating memo content via memo_list_memos and memo_update_memo",
+        "Warns that space_delete_space deletes every memo placed in the space"
+      ]
+    }
+  ]
+}

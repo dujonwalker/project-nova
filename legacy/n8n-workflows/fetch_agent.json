@@ -1,0 +1,135 @@
+{
+  "name": "fetch-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -900,
+        -300
+      ],
+      "id": "f1b2b8db-5771-4c3c-bf6c-d0d4794c0969",
+      "name": "When chat message received",
+      "webhookId": "bc588dfb-1e2c-4abd-801f-fbfcc43f18a2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -652,
+        280
+      ],
+      "id": "64e82167-aead-4c10-b1ea-3098f3c094f2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3020/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -532,
+        280
+      ],
+      "id": "b1cc592c-a9c9-4efe-a315-a04fe464a4b4",
+      "name": "all-tools"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"retrieve the content from https://example.com/article\",\n  \"reason\": \"The request involves fetching web content from a URL, which is the core capability of the Fetch Agent.\",\n  \"selectedAgent\": \"fetch-agent\",\n  \"chatHistory\": []\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -900,
+        60
+      ],
+      "id": "b2b393ad-15e6-4f41-8f15-84754366cce0",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with the ability to fetch and process web content from URLs. You have access to the Fetch MCP Server which provides tools for retrieving web content in various formats.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Fetch MCP Server tools and capabilities documented below\n- Explain that you can fetch and process web content in various formats\n- Offer to help with specific web content retrieval or processing tasks\n\n### Your Capabilities\n\nYou can retrieve web content in the following formats:\n1. HTML - Raw HTML content of a webpage\n2. JSON - Parsed JSON data from a URL\n3. Plain Text - Clean text extraction from a webpage (HTML tags, scripts, and styles removed)\n4. Markdown - Web content converted to Markdown format\n\n### How to Use Your Fetch Tools\n\nYou have access to these fetch tools:\n\n- **fetch_html**\n  - Fetch a website and return the content as HTML\n  - Input:\n    - `url` (string, required): URL of the website to fetch\n    - `headers` (object, optional): Custom headers to include in the request\n  - Returns the raw HTML content of the webpage\n  - Use when you need to analyze HTML structure or extract specific elements\n\n- **fetch_json**\n  - Fetch a JSON file from a URL\n  - Input:\n    - `url` (string, required): URL of the JSON to fetch\n    - `headers` (object, optional): Custom headers to include in the request\n  - Returns the parsed JSON content\n  - Use when working with APIs, data files, or structured information\n\n- **fetch_txt**\n  - Fetch a website and return the content as plain text (no HTML)\n  - Input:\n    - `url` (string, required): URL of the website to fetch\n    - `headers` (object, optional): Custom headers to include in the request\n  - Returns the text content of the webpage with HTML tags, scripts, and styles removed\n  - Use when you need readable content without HTML markup\n\n- **fetch_markdown**\n  - Fetch a website and return the content as Markdown\n  - Input:\n    - `url` (string, required): URL of the website to fetch\n    - `headers` (object, optional): Custom headers to include in the request\n  - Returns the content of the webpage converted to Markdown format\n  - Use when preserving some formatting while maintaining readability\n\n### Parameters\nFor all fetch tools:\n- `url` (required): The full URL of the content to fetch (must include http:// or https://)\n- `headers` (optional): Custom headers as a JSON object (useful for authentication or specific request requirements)\n\n### Best Practices\n\n1. **Choose the appropriate format** based on the user's needs:\n   - For data analysis or API responses, use fetch_json\n   - For reading content, use fetch_txt or fetch_markdown\n   - For HTML analysis or specific element extraction, use fetch_html\n\n2. **Handle errors gracefully**:\n   - Check for valid URLs (must begin with http:// or https://)\n   - Be prepared for failed requests (server errors, timeouts, etc.)\n   - Handle different content types appropriately\n\n3. **Respect privacy and security**:\n   - Do not attempt to fetch content from private networks or restricted URLs\n   - Do not use these tools to bypass paywalls or access controls\n   - Be cautious with user-submitted URLs\n\n4. **Process content effectively**:\n   - Summarize long content when appropriate\n   - Extract the most relevant information based on the user's query\n   - Convert technical content into understandable explanations\n\n5. **Protect user privacy**:\n   - Do not fetch URLs that may contain personal information without explicit consent\n   - Do not store or reuse fetched data beyond the current conversation\n\n### Response Format\n\nWhen using the fetch tools, structure your responses to:\n1. Acknowledge the fetch request\n2. Indicate which specific tool you're using (fetch_html, fetch_json, fetch_txt, or fetch_markdown) and why\n3. Process and present the fetched content in a helpful format\n4. Provide context or explanation about the content when needed\n\n### Limitations\n\n- Some websites may block automated requests\n- Large content may be truncated\n- Dynamic content that requires JavaScript execution may not be fully accessible\n- You cannot modify or submit data to websites\n\nAlways focus on being helpful, accurate, and respectful of web resources while using these fetch capabilities to assist users with their information needs.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -680,
+        60
+      ],
+      "id": "aa70b96b-2ea2-4713-98d8-4321f7dbff69",
+      "name": "fetch-agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "fetch-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "fetch-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "fetch-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a2a624ba-4040-4401-8805-589ff7895766",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "NuUcJz8v0NeoPn0V",
+  "tags": []
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Fetch this React documentation web page URL and convert the main article to Markdown.",
+    "should_trigger": true
+  },
+  {
+    "query": "Use fetch_urls to pull content from these five blog posts in parallel.",
+    "should_trigger": true
+  },
+  {
+    "query": "This URL uses a JS redirect interstitial before showing content — fetch it with waitForNavigation enabled.",
+    "should_trigger": true
+  },
+  {
+    "query": "Grab the raw visible innerText of this web page without Readability stripping navigation tables.",
+    "should_trigger": true
+  },
+  {
+    "query": "Install Playwright Chromium via browser_install for fetcher-mcp.",
+    "should_trigger": true
+  },
+  {
+    "query": "Configure fetcher-mcp HTTP transport flags (--transport=http --port=3000) and troubleshoot /mcp session headers.",
+    "should_trigger": true
+  },
+  {
+    "query": "Attach to my running Chrome browser via CDP WebSocket, inspect network requests, and click the Submit button.",
+    "should_trigger": false
+  },
+  {
+    "query": "Save a new bookmark with tags into Karakeep.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fetch the English transcript and video description for YouTube video dQw4w9WgXcQ.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check the current Kubernetes/Docker container metrics in Prometheus.",
+    "should_trigger": false
+  },
+  {
+    "query": "Read the deployment runbook page stored in our Outline wiki.",
+    "should_trigger": false
+  },
+  {
+    "query": "Search Blinko notes for yesterday's meeting todo items.",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,21 @@
+services:
+  fetch-mcp:
+    image: ghcr.io/jae-jae/fetcher-mcp:sha-66a4154
+    container_name: fetch-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3020}:3000"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/openapi.json').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

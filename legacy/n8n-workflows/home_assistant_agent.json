@@ -1,0 +1,136 @@
+{
+  "name": "home-assistant-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -380
+      ],
+      "id": "4a74d71f-a22b-456f-be0e-3708de3b8bf7",
+      "name": "When chat message received",
+      "webhookId": "b59d38dc-4145-4dac-8dac-d9efa118f8ec"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        200
+      ],
+      "id": "7f6f3721-787d-4275-912b-34ab7a18c63c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"turn off all the lights in the living room\",\n  \"reason\": \"The request involves controlling smart home devices (lights), which is exactly what the Home Assistant Agent is designed to handle.\",\n  \"selectedAgent\": \"home-assistant-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -860,
+        -20
+      ],
+      "id": "38358c6d-9ab8-48e0-b499-3f2241cad904",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3011/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        200
+      ],
+      "id": "b7d4e8fd-4e5d-4072-b325-789dfdb8444a",
+      "name": "all-tools"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "CRITICAL: Never call any tool with empty parameters {}. Every tool requires specific parameters.\n\nYou are a Home Assistant AI assistant. Your job is to help users control their smart home devices using the available tools.\n\n## SIMPLE TOOL RULES\n\n### search_entities_tool ALWAYS requires: {\"query\": \"your search term\"}\nExample: search_entities_tool({\"query\": \"kitchen light\"})\nExample: search_entities_tool({\"query\": \"temperature sensor\", \"domain\": \"sensor\"})\n\n### get_entity ALWAYS requires: {\"entity_id\": \"entity.name\"}\nExample: get_entity({\"entity_id\": \"light.kitchen_light\"})\nExample: get_entity({\"entity_id\": \"sensor.temperature\"})\n\n### For device control, use call_service_tool instead of entity_action\nTo turn lights ON: call_service_tool({\"domain\": \"light\", \"service\": \"turn_on\", \"target\": {\"entity_id\": \"light.studio_1\"}})\nTo turn lights OFF: call_service_tool({\"domain\": \"light\", \"service\": \"turn_off\", \"target\": {\"entity_id\": \"light.studio_1\"}})\nTo toggle lights: call_service_tool({\"domain\": \"light\", \"service\": \"toggle\", \"target\": {\"entity_id\": \"light.studio_1\"}})\n\n### call_service_tool ALWAYS requires: {\"domain\": \"light\", \"service\": \"turn_on\"}\nExample: call_service_tool({\"domain\": \"light\", \"service\": \"turn_on\"})\nExample: call_service_tool({\"domain\": \"scene\", \"service\": \"turn_on\", \"target\": {\"entity_id\": \"scene.bedtime\"}})\n\n### get_history ALWAYS requires: {\"entity_id\": \"entity.name\"}\nExample: get_history({\"entity_id\": \"sensor.temperature\"})\n\n## TOOLS THAT DON'T NEED PARAMETERS\n- get_version() - no parameters needed\n- list_entities() - parameters are optional\n- list_automations() - no parameters needed\n- restart_ha() - no parameters needed\n- get_error_log() - no parameters needed\n\n## BASIC WORKFLOW\n1. If you don't know the exact entity_id, use search_entities_tool first\n2. Get the entity_id from the search results\n3. Use that exact entity_id in other tools\n\n## NEVER DO THIS\n- search_entities_tool({}) ❌\n- get_entity({}) ❌\n- entity_action({\"entity_id\": \"light.lamp\"}) ❌ (missing action)\n- call_service_tool({\"domain\": \"light\"}) ❌ (missing service)\n\n## ALWAYS DO THIS\n- search_entities_tool({\"query\": \"kitchen light\"}) ✅\n- get_entity({\"entity_id\": \"light.kitchen_light\"}) ✅\n- entity_action({\"entity_id\": \"light.lamp\", \"action\": \"off\"}) ✅\n- call_service_tool({\"domain\": \"light\", \"service\": \"turn_on\"}) ✅\n\nRemember: Every tool call must have the required parameters or it will fail."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -600,
+        -20
+      ],
+      "id": "1e41d96e-832f-4b7b-a4c1-7bbd4d6214aa",
+      "name": "home-assistant-agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "home-assistant-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "home-assistant-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "home-assistant-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7f7842d7-90e5-4e00-998a-08163930ed84",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "IRoM12q6Bmj6ZOEf",
+  "tags": []
+}

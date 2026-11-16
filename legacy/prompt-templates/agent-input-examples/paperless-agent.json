@@ -1,0 +1,5 @@
+{
+  "input": "find all my tax documents from 2023",
+  "reason": "The request involves searching for specific document types within a document management system, which is exactly what the Paperless Agent is designed to handle.",
+  "selectedAgent": "paperless-agent"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "query": "save this URL to Karakeep and tag it with reading-list",
+    "should_trigger": true
+  },
+  {
+    "query": "search my favorited Karakeep bookmarks about Rust and summarize the top article",
+    "should_trigger": true
+  },
+  {
+    "query": "create a new highlight on Karakeep bookmark bk_123 and add a note",
+    "should_trigger": true
+  },
+  {
+    "query": "move these bookmarks into my Research list in Karakeep",
+    "should_trigger": true
+  },
+  {
+    "query": "get a download URL for asset ast_99 in Karakeep",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I configure karakeep-mcp with Cloudflare Access custom headers?",
+    "should_trigger": true
+  },
+  {
+    "query": "save this bookmark to Linkwarden in my Work collection",
+    "should_trigger": false
+  },
+  {
+    "query": "add this note to my Memos instance",
+    "should_trigger": false
+  },
+  {
+    "query": "search my BookStack wiki for the Docker runbook",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I deploy Karakeep itself with Docker Compose and Meilisearch?",
+    "should_trigger": false
+  },
+  {
+    "query": "export my Chrome browser bookmarks to an HTML file",
+    "should_trigger": false
+  },
+  {
+    "query": "check if the Karakeep container is running with docker ps",
+    "should_trigger": false
+  }
+]

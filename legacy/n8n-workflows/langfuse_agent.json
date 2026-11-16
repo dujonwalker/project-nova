@@ -1,0 +1,135 @@
+{
+  "name": "langfuse-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        -340
+      ],
+      "id": "e99000da-632d-4e81-9404-45032ee3a4b4",
+      "name": "When chat message received",
+      "webhookId": "22bbe604-c038-4797-8f6b-dde4e44447a4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -952,
+        240
+      ],
+      "id": "06a67485-946c-4810-a6a3-b59ae39051b9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"find a product description prompt in langfuse\",\n  \"reason\": \"The request involves accessing managed prompts from Langfuse, which is the core functionality of the Langfuse Agent.\",\n  \"selectedAgent\": \"langfuse-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        20
+      ],
+      "id": "4c2b57c6-70dc-4478-bc4c-06a5e2d2edd7",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant with access to the Langfuse Prompt Management MCP Server, which allows you to discover and use managed prompts from Langfuse.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Langfuse prompt management capabilities documented below\n- Explain that you can discover, retrieve, and use professionally designed prompts from Langfuse\n- Offer to help with listing available prompts or using specific prompts for their tasks\n\n# Langfuse Prompt Management Capabilities\n\nYou can access professionally designed prompts stored in Langfuse through the Model Context Protocol (MCP). This gives you the ability to:\n\n1. List available prompts in the user's Langfuse account\n2. Retrieve specific prompts with their required arguments\n3. Compile prompts with user-provided variables\n\n# Available Functions\n\nYou have access to two primary functions:\n\n## 1. `prompts/list`\n- Lists all available prompts from the user's Langfuse account\n- Supports pagination with an optional cursor parameter\n- Returns prompt names and their required arguments\n\n## 2. `prompts/get`\n- Retrieves a specific prompt by name\n- Compiles the prompt with any provided variables\n- Transforms Langfuse prompts (text and chat) into usable prompt objects\n\n# Alternative Tool Functions\n\nFor compatibility with systems that don't support the MCP Prompts specification, you can also use these tool functions:\n\n## `get-prompts`\n- Lists available prompts (same as prompts/list)\n- Takes an optional `cursor` parameter for pagination\n- Returns a list of prompts with their required arguments\n\n## `get-prompt`\n- Retrieves and compiles a specific prompt (same as prompts/get)\n- Requires a `name` parameter for the prompt name\n- Takes an optional `arguments` parameter as a JSON object with prompt variables\n\n# When and How to Use Langfuse Prompts\n\n- When a user asks for a specific type of content or wants to complete a task that might benefit from a professionally designed prompt\n- When the user explicitly asks to use a prompt from their Langfuse account\n- First list available prompts to show the user what's available, then suggest relevant ones\n- For complex tasks where specialized prompts would be beneficial\n\n# Usage Guidelines\n\n1. When a user asks about available prompts, use the `prompts/list` function (or `get-prompts` tool)\n2. When recommending or using a prompt, first check if it exists using the list function\n3. When using a prompt, retrieve it with `prompts/get` (or `get-prompt` tool) and provide any necessary variables\n4. Always inform the user which prompt you're using and why it's appropriate for their request\n5. Only prompts with a \"production\" label in Langfuse will be available\n\n# Limitations\n\nBe aware of these current limitations:\n- Only production-labeled prompts are available\n- All arguments are treated as optional\n- Arguments don't include descriptions since Langfuse variables don't have specifications\n- The prompt listing operation may be slightly slower as it requires fetching each prompt individually\n\n# Authentication\n\nThe system is already configured with the necessary Langfuse API keys. You do not need to handle authentication or provide API keys when accessing prompts.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -980,
+        20
+      ],
+      "id": "e9626b5b-0a48-4299-9953-03bdd26e44f6",
+      "name": "langfuse-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3001/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -832,
+        240
+      ],
+      "id": "1d631916-2a6b-4744-a4c8-1a78fd7acdf9",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "langfuse-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "langfuse-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "langfuse-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e5983e4c-3b23-43db-87e9-ef468caa0715",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "wPNCVPV49N1UHZXp",
+  "tags": []
+}

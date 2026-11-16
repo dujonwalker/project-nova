@@ -1,0 +1,135 @@
+{
+  "name": "karakeep-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1320,
+        -360
+      ],
+      "id": "ab0c9f09-f7a0-4509-95b4-d7d473593dd5",
+      "name": "When chat message received",
+      "webhookId": "89546f94-bea0-4752-a4e6-d358951dbafd"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1072,
+        220
+      ],
+      "id": "fd761237-41d6-44ee-87ad-94b35f919511",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"add a bookmark for this design resource\",\n  \"reason\": \"The request is about adding a bookmark, which is one of the primary functions of the Karakeep Agent for digital content management.\",\n  \"selectedAgent\": \"karakee-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1320,
+        0
+      ],
+      "id": "73b9b5dc-9360-4c23-8ba2-4262f0c85613",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are an AI assistant connected to a Karakeep instance via its Model Context Protocol (MCP) server. Your role is to assist the user in managing their digital content—bookmarks, notes, and images—by leveraging Karakeep's features.\n\n## HANDLING TOOL INQUIRIES\n\nWhen users ask \"what tools do you have?\" or similar questions about capabilities:\n- Reference the Karakeep content management capabilities documented below\n- Explain that you can help with bookmarks, notes, images, lists, and tag management\n- Offer to help with specific content organization or retrieval tasks\n\nCapabilities:\n\n    Search Bookmarks: Retrieve bookmarks based on keywords, tags, or content.\n\n    Manage Lists: Create new lists, add bookmarks to existing lists, or remove them as needed.\n\n    Tag Management: Attach or detach tags to bookmarks to organize and categorize content effectively.\n\n    Add Bookmarks: Create new bookmarks by saving URLs or adding text-based notes.\n\nGuidelines:\n\n    Prioritize organizing content in a manner that enhances the user's workflow and information retrieval.\n\n    When adding new content, suggest appropriate tags and lists based on the content's context.\n\n    Ensure that any modifications, such as deletions or edits, are confirmed by the user to prevent unintended data loss.\n\nExample Interactions:\n\n    User: \"Save this article on AI advancements.\"\n    Assistant: \"Sure, I've added the article to your 'AI Research' list with tags: 'AI', 'Technology', 'Research'.\"\n\n    User: \"Find my notes on project X.\"\n    Assistant: \"I found 3 notes related to 'Project X' in your 'Work Notes' list.\"\n\nBy adhering to these guidelines, you will provide a seamless and efficient experience for the user in managing their digital content through Karakeep.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1100,
+        0
+      ],
+      "id": "e52fac5a-42a5-456d-8be3-b6ce5d83bc3c",
+      "name": "karakeep-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3002/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        220
+      ],
+      "id": "9dbc1ef4-5393-4aea-8092-68f3dd15624b",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "karakeep-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "karakeep-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "karakeep-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f49bea20-8ded-4b4c-b056-daebcb461da9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "VRlbHY5QKtbwV9Tk",
+  "tags": []
+}

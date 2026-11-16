@@ -1,0 +1,38 @@
+{
+  "skill_name": "langfuse-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find all LLM errors from the last 24 hours in Langfuse, focusing especially on the 'unknown' file group and inspecting the full stacktrace and inputs of a failing trace.",
+      "expected_output": "Calls find_exceptions(age=1440, group_by='file'), uses find_exceptions_in_file only for concrete filepaths (never passes filepath='unknown'), drills into the 'unknown' group directly via its representative trace_id with get_exception_details or fetch_trace(include_observations=true), and uses output_mode='full_json_file' if full truncated inputs/stacktraces are needed.",
+      "files": [],
+      "assertions": [
+        "Starts with find_exceptions(age=1440, group_by='file')",
+        "Never passes filepath='unknown' to find_exceptions_in_file and instead uses trace_id with get_exception_details or fetch_trace",
+        "Uses output_mode='full_json_file' (or 'full_json_string') when full un-truncated payload inspection is required"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Analyze why our chat generation calls were slow over the past 6 hours and summarize total latency/cost by model in Langfuse.",
+      "expected_output": "Uses fetch_observations(age=360, type='GENERATION') for per-call latency inspection, calls get_metrics_schema() before building a query_metrics(view='observations', ...) aggregation (noting that fetch_traces omits total_cost on Observations API v2), and drills into slow observation IDs with fetch_observation.",
+      "files": [],
+      "assertions": [
+        "Uses age=360 (minutes, not 6) with fetch_observations(type='GENERATION')",
+        "Calls get_metrics_schema before query_metrics for latency/cost aggregation",
+        "Preserves exact recorded model names and IDs without rewriting historical identifiers"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a new version of our 'support-router' chat prompt in staging in Langfuse and inspect existing boolean quality scores for the last 2 days.",
+      "expected_output": "Confirms prompt mutation intent or creates an immutable new version with create_chat_prompt(labels=['staging']) without touching production directly, explains promoting/rolling back via update_prompt_labels, and queries boolean scores via list_scores_v2 with data_type='BOOLEAN' explicitly set.",
+      "files": [],
+      "assertions": [
+        "Uses create_chat_prompt with labels=['staging'] (noting prompts are immutable and labels move between versions via update_prompt_labels)",
+        "Calls list_scores_v2 with data_type='BOOLEAN' when filtering boolean scores (since omitted data_type defaults to NUMERIC for operator='=' filters)",
+        "Uses Langfuse MCP tools directly without falling back to langfuse-cli or raw curl REST requests"
+      ]
+    }
+  ]
+}

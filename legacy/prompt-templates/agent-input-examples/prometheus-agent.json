@@ -1,0 +1,5 @@
+{
+  "input": "show me server CPU usage for the last hour",
+  "reason": "The request involves querying and analyzing system performance metrics over time, which is the primary capability of the Prometheus Agent.",
+  "selectedAgent": "prometheus-agent"
+}

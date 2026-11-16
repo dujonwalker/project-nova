@@ -1,0 +1,20 @@
+services:
+  everything-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: everything-mcp-server
+    restart: unless-stopped
+    environment:
+      - SSE_HOST=${SSE_HOST:-0.0.0.0}
+      - SSE_PORT=${SSE_PORT:-3008}
+    ports:
+      - "${SSE_PORT:-3008}:${SSE_PORT:-3008}"
+    volumes:
+      - ${HOST_SEARCH_DIR:-./data}:/app/search_data
+    networks:
+      - mcp_network
+
+networks:
+  mcp_network:
+    driver: bridge

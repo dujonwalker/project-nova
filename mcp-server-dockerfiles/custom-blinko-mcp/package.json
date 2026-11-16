@@ -1,0 +1,13 @@
+{
+  "name": "blinko-mcp-server",
+  "version": "2.1.0",
+  "description": "Blinko MCP server with stateless Streamable HTTP support",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  }
+}

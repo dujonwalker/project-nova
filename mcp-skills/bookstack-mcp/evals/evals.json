@@ -1,0 +1,34 @@
+{
+  "skill_name": "bookstack-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Update page 42 in BookStack to add a new tag Reviewed without overwriting its existing tags or breaking its WYSIWYG formatting.",
+      "expected_output": "Reads page 42 first (for existing tags and format: raw if editing HTML), then calls update_page with the full combined tags list and without passing rendered html.",
+      "assertions": [
+        "Reads existing page/tags before calling update_page",
+        "Preserves existing tags by sending the complete combined tags array (or notes that tags replaces the entire list)",
+        "Uses format: raw (not rendered html) if reading/updating WYSIWYG source, or omits html/markdown for a tag-only update"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Find all pages in BookStack updated by user ID 7 and read the full text of a 90,000-character runbook page.",
+      "expected_output": "Notes that author filters require a user slug or me (not numeric ID 7), uses find_users or asks for slug, and paginates get_page using content_next_offset until null.",
+      "assertions": [
+        "States that BookStack author search filters reject numeric user IDs and require a user slug or me",
+        "Mentions find_users (or admin slug lookup) to resolve the user slug",
+        "Uses get_page with content_next_offset pagination until content_next_offset is null"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Upload an architecture diagram PNG to BookStack page 42 and embed it in the page, then explain why create_page isn't showing up in my MCP client.",
+      "expected_output": "Explains create_image uploads the image and returns markdown/html snippets that must be inserted via a separate update_page call, and that write tools are hidden unless BOOKSTACK_ENABLE_WRITE=true.",
+      "assertions": [
+        "Uses create_image and notes a separate update_page call is required to insert the returned snippet",
+        "Explains that bookstack-mcp is read-only by default and requires BOOKSTACK_ENABLE_WRITE=true to expose write tools"
+      ]
+    }
+  ]
+}

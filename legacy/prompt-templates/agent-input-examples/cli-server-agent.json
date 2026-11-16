@@ -1,0 +1,5 @@
+{
+  "input": "show me disk usage for the project directory",
+  "reason": "The request involves executing a command-line operation to examine disk usage, which falls under the capabilities of the CLI Server Agent.",
+  "selectedAgent": "cli-server-agent"
+}

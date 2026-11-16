@@ -1,0 +1,28 @@
+services:
+  mcp-bookstack-sse:
+    image: ghcr.io/ttpears/bookstack-mcp:latest
+    container_name: mcp-bookstack-sse
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3003}:${PORT:-3003}"
+    environment:
+      - MCP_TRANSPORT=http
+      - MCP_HTTP_HOST=${HOST:-0.0.0.0}
+      - MCP_HTTP_PORT=${PORT:-3003}
+      - MCP_HTTP_PATH=/mcp
+      - BOOKSTACK_BASE_URL=${BOOKSTACK_BASE_URL:-http://127.0.0.1:8080}
+      - BOOKSTACK_TOKEN_ID=${BOOKSTACK_TOKEN_ID}
+      - BOOKSTACK_TOKEN_SECRET=${BOOKSTACK_TOKEN_SECRET}
+      - BOOKSTACK_ENABLE_WRITE=${BOOKSTACK_ENABLE_WRITE:-true}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-3003}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

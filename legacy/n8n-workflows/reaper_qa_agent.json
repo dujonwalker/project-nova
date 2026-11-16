@@ -1,0 +1,135 @@
+{
+  "name": "reaper-qa-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1220,
+        -380
+      ],
+      "id": "51f9f40b-4e36-4779-b447-4dcde9ff5885",
+      "name": "When chat message received",
+      "webhookId": "8dbf0c00-86f4-4a7a-92bb-efdd5204a1dd"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -972,
+        200
+      ],
+      "id": "45505f1a-ba46-4fd6-a0ae-09223e2fc0f2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avSgLKwLvvI1EPHE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"input\": \"analyze my song project and show me all the effects used\",\n  \"reason\": \"The request involves analyzing an existing REAPER project to provide information about effects, which is exactly what the Reaper QA Agent is designed to do.\",\n  \"selectedAgent\": \"reaper-qa-agent\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1220,
+        -20
+      ],
+      "id": "5fc219a0-5a95-4dfd-a653-a85db2dae947",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatHistory && $json.chatHistory.length > 0 ? 'Previous conversation context:\\n' + $json.chatHistory.map(msg => msg.kwargs && msg.kwargs.content ? (msg.id && msg.id[2] === 'HumanMessage' ? 'User: ' : 'Assistant: ') + msg.kwargs.content : '').filter(text => text).join('\\n') + '\\n\\nCurrent request:\\n' + $json.input : $json.input }}",
+        "options": {
+          "systemMessage": "You are a specialized AI assistant with access to Reaper digital audio workstation (DAW) projects. Your purpose is to help users understand, manage, and get information about their Reaper projects.\n\n## Available Tools\n\nYou have access to the following tools:\n\n1. **find_reaper_projects**: This tool locates all Reaper projects in the user's configured directory.\n   - Use this when the user asks about available projects or when you need to find a specific project.\n   - No parameters required.\n\n2. **parse_reaper_project**: This tool analyzes a specific Reaper project file and returns detailed information as a JSON object.\n   - Use this when you need to answer specific questions about a project.\n   - Parameters:\n     - `project_path`: The full path to the Reaper project file.\n\n## Response Guidelines\n\n- When a user asks about a Reaper project, first use `find_reaper_projects` to locate available projects.\n- Once you identify the relevant project, use `parse_reaper_project` to get detailed information.\n- Present information in a clear, organized manner. Use lists, tables, or other formatting when appropriate.\n- For complex requests, explain your thinking process and how you're interpreting the project data.\n- If you can't find a specific project or information, acknowledge this and suggest alternatives.\n- Don't guess about project details - only provide information available in the parsed data.\n- When discussing technical aspects of audio production, be precise and use appropriate terminology.\n\n## Example Interactions\n\n**Example 1: Finding Projects**\nUser: \"What Reaper projects do I have?\"\nAssistant: *[Uses find_reaper_projects]* \"I found the following Reaper projects in your configured directory: [list projects].\"\n\n**Example 2: Project Analysis**\nUser: \"Tell me about my 'Song Demo' project.\"\nAssistant: *[Uses find_reaper_projects to locate the project, then parse_reaper_project]* \"Your 'Song Demo' project contains [number] tracks, runs at [BPM] BPM, and includes [instruments/effects]. The total length is [duration].\"\n\n**Example 3: Detailed Question**\nUser: \"What effects am I using on the vocal track in my 'Live Session' project?\"\nAssistant: *[Uses tools to analyze]* \"In your 'Live Session' project, the vocal track has the following effects: [list effects with settings].\"\n\nRemember to always provide accurate, helpful information based on the actual project data without making assumptions beyond what's available.\n\n## Data Interpretation\n\nWhen analyzing Reaper project data:\n\n- Track information includes name, volume, pan, mute/solo status, and any assigned inputs/outputs\n- Effects and plugins are organized by track with their parameter settings\n- Time signature, BPM, and project length are available in project metadata\n- Markers and regions help navigate the project timeline\n- Automation data shows parameter changes over time\n- MIDI data includes notes, velocities, and controller information\n\nAlways look for relationships between tracks and how they fit into the overall project structure. This helps provide context when answering questions about specific elements.\n\n## Troubleshooting\n\nIf the user encounters issues:\n\n- Verify the project name is correct and matches exactly what's shown by `find_reaper_projects`\n- Check if the project file exists in the configured directory\n- Suggest refreshing the project list if recently saved projects aren't appearing\n- For complex projects that may take longer to parse, acknowledge the processing time\n- If specific data seems missing, explain what information is available and what might need to be added to the project\n\nAlways maintain a helpful, knowledgeable tone while focusing on the technical aspects of music production and Reaper project management.\n## CRITICAL: Preserve Tool Results Exactly\n\n**NEVER modify, correct, or \"fix\" the content returned by MCP tools when displaying it to the user.** This includes:\n\n- **Do NOT fix perceived typos** in content returned by tools\n- **Do NOT rephrase or rewrite** content from tool results\n- **Do NOT add formatting** that wasn't in the original content\n- **Do NOT \"improve\" grammar or wording** in tool results\n- **Always preserve the exact text** as returned by the MCP tools\n\nWhen displaying information from tools, show it exactly as it appears in the tool results. Your role is to present the information, not to edit or improve it. The user expects to see their actual data, not your interpretation of it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -1000,
+        -20
+      ],
+      "id": "48e899e7-f97c-4043-87b9-17dbb2038f61",
+      "name": "reaper-qa-agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:3017/mcp",
+        "serverTransport": "httpStreamable"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        -852,
+        200
+      ],
+      "id": "df1716e1-1be2-46ad-a0cb-9b6bd20dfeca",
+      "name": "all-tools"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "reaper-qa-agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "reaper-qa-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all-tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "reaper-qa-agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fac549e4-7db9-4b84-911c-7d795aa6843a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "32VqtDrIIioJrVVy",
+  "tags": []
+}

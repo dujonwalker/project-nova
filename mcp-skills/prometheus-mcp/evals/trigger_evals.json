@@ -1,0 +1,14 @@
+[
+  {"query": "Check Prometheus scrape targets and see if any node_exporter hosts are down.", "should_trigger": true},
+  {"query": "Run a PromQL range query for memory usage over the last 6 hours using prometheus-mcp.", "should_trigger": true},
+  {"query": "What metrics starting with http_request_ are available in Prometheus and what units do they use?", "should_trigger": true},
+  {"query": "Query active firing alerts in Prometheus via MCP.", "should_trigger": true},
+  {"query": "Verify prometheus-mcp-server health_check and configure PROMETHEUS_MCP_STATELESS_HTTP=true.", "should_trigger": true},
+  {"query": "We added a new scrape job in Prometheus; refresh the cached metrics list and check its metadata.", "should_trigger": true},
+  {"query": "Check Uptime Kuma monitors and incident history for our public websites.", "should_trigger": false},
+  {"query": "Query Beszel server CPU and RAM stats across our self-hosted environment hosts.", "should_trigger": false},
+  {"query": "Write a Grafana dashboard JSON panel from scratch without querying Prometheus.", "should_trigger": false},
+  {"query": "Check VMware ESXi host datastore space and CPU metrics via vSphere.", "should_trigger": false},
+  {"query": "Search Paperless-ngx for server hardware purchase invoices.", "should_trigger": false},
+  {"query": "Diagnose why node_exporter systemd service failed to bind port 9100 on a Linux host.", "should_trigger": false}
+]

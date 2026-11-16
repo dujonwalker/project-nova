@@ -1,0 +1,10 @@
+# Unrestricted configuration for isolated/disposable agent VMs (requires
+# MCP_SHELL_ALLOW_UNSAFE=1). Provides shell_exec (bash -c) while enforcing
+# execution timeout, capped output size, and default working directory.
+security:
+  enabled: false
+  max_execution_time: "120s"
+  max_output_size: 4194304  # 4MB
+  working_directory: "/workspace"
+  run_as_user: ""
+  audit_log: true

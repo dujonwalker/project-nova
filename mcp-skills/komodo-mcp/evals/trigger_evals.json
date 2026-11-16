@@ -1,0 +1,50 @@
+[
+  {
+    "query": "List all Komodo servers and check their live CPU, RAM, and disk stats.",
+    "should_trigger": true
+  },
+  {
+    "query": "Deploy the 'nextcloud' Komodo stack and check update status and container health.",
+    "should_trigger": true
+  },
+  {
+    "query": "Trigger a Komodo build for 'backend-api' and tail the build logs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search the logs of the nginx container managed by Komodo for 502 errors.",
+    "should_trigger": true
+  },
+  {
+    "query": "Export all Komodo stacks, builds, and repos to TOML using komodo-mcp.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check why komodo_exec and write tools are missing when MCP_AUTH_ENABLED=false on HTTP.",
+    "should_trigger": true
+  },
+  {
+    "query": "Open https://example.com in a headless browser and click the login button.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create an issue and pull request on my remote Git repository via API.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check CPU usage and system health via Beszel.",
+    "should_trigger": false
+  },
+  {
+    "query": "Query Prometheus metrics for container memory usage over the last hour.",
+    "should_trigger": false
+  },
+  {
+    "query": "Turn on the living room lights in Home Assistant.",
+    "should_trigger": false
+  },
+  {
+    "query": "Log a 4 oz bottle feed in Sprout Track.",
+    "should_trigger": false
+  }
+]

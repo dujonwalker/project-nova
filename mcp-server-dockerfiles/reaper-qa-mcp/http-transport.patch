@@ -1,0 +1,88 @@
+diff --git a/src/reaper_mcp_server/server.py b/src/reaper_mcp_server/server.py
+index 44b4980..e7fa5a4 100644
+--- a/src/reaper_mcp_server/server.py
++++ b/src/reaper_mcp_server/server.py
+@@ -1,9 +1,12 @@
+ import argparse
+ import json
++import os
+ from dataclasses import asdict
+ from typing import Optional
+
+ from mcp.server.fastmcp import FastMCP
++from mcp.server.transport_security import TransportSecuritySettings
++from starlette.responses import JSONResponse
+
+ from .utils import (
+     remove_empty_strings,
+@@ -17,6 +20,13 @@ from .audio_analyzer import AudioAnalyzer
+ from .fx_finder import FXFinder
+
+
++def _env_bool(name: str, default: bool) -> bool:
++    raw = os.environ.get(name)
++    if raw is None or not raw.strip():
++        return default
++    return raw.strip().lower() in ("1", "true", "yes", "on")
++
++
+ def _serialize(payload) -> str:
+     """Shared output pipeline: truncate blobs, drop empties, make JSON-safe."""
+     return json.dumps(sanitize_floats(remove_empty_strings(truncate_encoded_params(payload))))
+@@ -24,11 +34,32 @@ def _serialize(payload) -> str:
+
+ def create_server():
+     parser = argparse.ArgumentParser()
+-    parser.add_argument('--reaper-projects-dir',
+-                       help="Base directory for REAPER projects")
+-    args = parser.parse_args()
+-
+-    server = FastMCP("reaper-mcp-server")
++    parser.add_argument(
++        '--reaper-projects-dir',
++        default=os.environ.get('REAPER_PROJECTS_DIR', '/data/Documents/REAPER Projects').strip()
++        or '/data/Documents/REAPER Projects',
++        help="Base directory for REAPER projects",
++    )
++    args, _unknown = parser.parse_known_args()
++
++    server = FastMCP(
++        "reaper-mcp-server",
++        host=os.environ.get("SSE_HOST", "0.0.0.0").strip() or "0.0.0.0",
++        port=int((os.environ.get("SSE_PORT") or "3017").strip()),
++        stateless_http=_env_bool("MCP_STATELESS_HTTP", True),
++        json_response=_env_bool("MCP_JSON_RESPONSE", False),
++        transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
++    )
++
++    @server.custom_route("/health", methods=["GET"])
++    @server.custom_route("/healthz", methods=["GET"])
++    async def health(_request):
++        return JSONResponse({
++            "status": "ok",
++            "server": "reaper-qa-mcp",
++            "version": "0.1.0",
++            "projects_dir": args.reaper_projects_dir,
++        })
+
+     @server.tool()
+     def find_reaper_projects():
+@@ -141,7 +172,7 @@ def create_server():
+         Returns:
+             JSON with list of installed plugins including name, type, path, and manufacturer
+         """
+-        fx_finder = FXFinder()
++        fx_finder = FXFinder(os.environ.get("REAPER_RESOURCE_PATH", "").strip() or None)
+
+         if search_query:
+             plugins = fx_finder.search_plugins(search_query)
+@@ -160,7 +191,8 @@ def create_server():
+
+ def main():
+     """Console-script entry point declared in pyproject.toml."""
+-    create_server().run(transport='stdio')
++    transport = os.environ.get("MCP_TRANSPORT", "streamable-http").strip() or "streamable-http"
++    create_server().run(transport=transport)
+
+
+ if __name__ == '__main__':

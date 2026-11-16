@@ -1,0 +1,5 @@
+{
+  "input": "find information about climate change with proper citations",
+  "reason": "The request involves retrieving factual information with citations, which is the primary function of the RAGFlow Agent's document-grounded retrieval system.",
+  "selectedAgent": "ragflow-agent"
+}

@@ -1,0 +1,5 @@
+{
+  "input": "analyze my song project and show me all the effects used",
+  "reason": "The request involves analyzing an existing REAPER project to provide information about effects, which is exactly what the Reaper QA Agent is designed to do.",
+  "selectedAgent": "reaper-qa-agent"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Find all LLM exceptions in Langfuse from the last 24 hours and show me the failing trace details.",
+    "should_trigger": true
+  },
+  {
+    "query": "Why was user_42's chat session so slow this morning? Check the Langfuse observations and metrics.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a new staging version of the 'rag-synthesizer' chat prompt in Langfuse and inspect the production label.",
+    "should_trigger": true
+  },
+  {
+    "query": "List items in the 'qa-golden-set' Langfuse dataset and inspect the latest dataset run.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check low-confidence route decisions and boolean evaluation scores in Langfuse over the past 3 days.",
+    "should_trigger": true
+  },
+  {
+    "query": "Configure langfuse-mcp in streamable-http read-only mode with only traces, exceptions, and prompts enabled.",
+    "should_trigger": true
+  },
+  {
+    "query": "ClickHouse is filling up the disk on our self-hosted Langfuse server — check system.parts TTLs and rotate Docker logs.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add @observe decorators and OpenTelemetry tracing to my Python FastAPI service before we deploy it.",
+    "should_trigger": false
+  },
+  {
+    "query": "Query Prometheus for container memory usage and 5xx HTTP rates over the last 6 hours.",
+    "should_trigger": false
+  },
+  {
+    "query": "Inspect this local Python traceback from pytest and fix the KeyError in parser.py.",
+    "should_trigger": false
+  },
+  {
+    "query": "Search our BookStack wiki for the LLM evaluation architecture document.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a GitHub Actions workflow using promptfoo on a local YAML config file without any external observability platform.",
+    "should_trigger": false
+  }
+]

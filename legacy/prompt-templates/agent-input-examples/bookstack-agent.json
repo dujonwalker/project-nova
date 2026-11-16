@@ -1,0 +1,5 @@
+{
+  "input": "find the API documentation in BookStack",
+  "reason": "The request involves searching for documentation in BookStack, which is the primary function of the BookStack Agent.",
+  "selectedAgent": "bookstack-agent"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Fetch the transcript and video description for YouTube video ID abcdef12345.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search YouTube for Rust async tutorials published in the last month.",
+    "should_trigger": true
+  },
+  {
+    "query": "Find indie gaming creator channels between 20k and 150k subscribers with channels_findCreators.",
+    "should_trigger": true
+  },
+  {
+    "query": "List all videos inside YouTube playlist PL1234567890ABCDEF.",
+    "should_trigger": true
+  },
+  {
+    "query": "Look up subscriber count, uploadsPlaylistId, and contact links for this YouTube channel.",
+    "should_trigger": true
+  },
+  {
+    "query": "Configure youtube-mcp HTTP transport on port 8088 with YOUTUBE_API_KEY2 fallback.",
+    "should_trigger": true
+  },
+  {
+    "query": "Cast this YouTube video to the living room Chromecast and turn up the volume.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check what YouTube video is currently playing on SmartTube on my Firestick via ADB.",
+    "should_trigger": false
+  },
+  {
+    "query": "Download this YouTube track as an MP3 into my Navidrome music library via MusicGrabber.",
+    "should_trigger": false
+  },
+  {
+    "query": "Upload a new thumbnail and schedule a premiere in YouTube Studio.",
+    "should_trigger": false
+  },
+  {
+    "query": "Play my Jellyfin movie library on Kodi on the Vero 4K box.",
+    "should_trigger": false
+  },
+  {
+    "query": "Query Langfuse traces for why the summarization prompt failed yesterday.",
+    "should_trigger": false
+  }
+]

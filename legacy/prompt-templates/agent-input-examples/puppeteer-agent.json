@@ -1,0 +1,5 @@
+{
+  "input": "take a screenshot of our company website",
+  "reason": "The request involves web automation to capture a screenshot, which is a primary capability of the Puppeteer Agent.",
+  "selectedAgent": "puppeteer-agent"
+}

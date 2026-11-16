@@ -1,0 +1,29 @@
+services:
+  nextcloud-mcp:
+    image: ghcr.io/cbcoutinho/nextcloud-mcp-server:0.212.0@sha256:8fbf449a68e92b416e475804dd4adaf4f9c43a5b3d83e8dc0da0b112b359700e
+    container_name: nextcloud-mcp
+    restart: unless-stopped
+    command: ["--transport", "streamable-http", "--port", "8000"]
+    ports:
+      - "${SSE_PORT:-3016}:8000"
+    environment:
+      - MCP_DEPLOYMENT_MODE=${MCP_DEPLOYMENT_MODE:-single_user_basic}
+      - NEXTCLOUD_HOST=${NEXTCLOUD_HOST:-https://127.0.0.1}
+      - NEXTCLOUD_USERNAME=${NEXTCLOUD_USERNAME}
+      - NEXTCLOUD_PASSWORD=${NEXTCLOUD_PASSWORD}
+      - NEXTCLOUD_VERIFY_SSL=${NEXTCLOUD_VERIFY_SSL:-false}
+      - TOKEN_STORAGE_DB=/app/data/tokens.db
+    volumes:
+      - /data/nextcloud-mcp/data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

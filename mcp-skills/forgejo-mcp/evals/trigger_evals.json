@@ -1,0 +1,50 @@
+[
+  {
+    "query": "check why Forgejo Actions run #222 failed in acme/api and inspect the job logs",
+    "should_trigger": true
+  },
+  {
+    "query": "create a new pull request in our Forgejo repo and request reviews from the backend team",
+    "should_trigger": true
+  },
+  {
+    "query": "commit updates to three YAML files atomically in our Forgejo repository",
+    "should_trigger": true
+  },
+  {
+    "query": "add a cross-repo issue dependency on Forgejo and create an exclusive scoped label",
+    "should_trigger": true
+  },
+  {
+    "query": "why does forgejo-mcp refuse to start with --host 0.0.0.0 or return 401 in http mode?",
+    "should_trigger": true
+  },
+  {
+    "query": "read the Forgejo wiki page Guides/Setup using forgejo:// resources or MCP tools",
+    "should_trigger": true
+  },
+  {
+    "query": "use tea CLI to add a login and list open pull requests on Forgejo",
+    "should_trigger": false
+  },
+  {
+    "query": "configure gitea-mcp for our Gitea server using -S issue,pull_request",
+    "should_trigger": false
+  },
+  {
+    "query": "configure the GitHub MCP server in VS Code",
+    "should_trigger": false
+  },
+  {
+    "query": "write a Forgejo Actions workflow YAML to build a container image",
+    "should_trigger": false
+  },
+  {
+    "query": "push my local git commits to git.b4mad.industries over SSH port 2222",
+    "should_trigger": false
+  },
+  {
+    "query": "search our BookStack wiki for the deployment runbook",
+    "should_trigger": false
+  }
+]

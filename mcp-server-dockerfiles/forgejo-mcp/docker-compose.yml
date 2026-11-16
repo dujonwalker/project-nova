@@ -1,0 +1,27 @@
+services:
+  forgejo-mcp:
+    image: git.b4mad.industries/agentic-forges/forgejo-mcp:latest
+    container_name: forgejo-mcp
+    restart: unless-stopped
+    command:
+      - "--transport"
+      - "http"
+      - "--host"
+      - "0.0.0.0"
+      - "--http-port"
+      - "${SSE_PORT:-8989}"
+      - "--allowed-hosts"
+      - "${FORGEJO_MCP_ALLOWED_HOSTS:-127.0.0.1,forgejo-mcp,localhost,127.0.0.1}"
+      - "--allow-operator-token-fallback"
+    ports:
+      - "${SSE_PORT:-8989}:${SSE_PORT:-8989}"
+    environment:
+      - FORGEJO_URL=${FORGEJO_URL:-http://127.0.0.1:3000}
+      - FORGEJO_ACCESS_TOKEN=${FORGEJO_ACCESS_TOKEN}
+      - FORGEJO_DEBUG=${DEBUG_MODE:-false}
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

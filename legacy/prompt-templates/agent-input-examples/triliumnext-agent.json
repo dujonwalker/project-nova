@@ -1,0 +1,5 @@
+{
+  "input": "find notes about project roadmap",
+  "reason": "The request involves searching for specific notes within TriliumNext Notes, which is a primary capability of the TriliumNext Notes Agent.",
+  "selectedAgent": "triliumnext-agent"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Run a shell command via mcp-shell to check git status and inspect listening ports or environment tools.",
+    "should_trigger": true
+  },
+  {
+    "query": "Execute a bash pipeline with jq and ripgrep in the workspace using shell_exec.",
+    "should_trigger": true
+  },
+  {
+    "query": "Run the operator-defined test script on mcp-shell and report the output.",
+    "should_trigger": true
+  },
+  {
+    "query": "Use mcp-shell to run git_blame on src/main.go in the confined workspace.",
+    "should_trigger": true
+  },
+  {
+    "query": "Capture binary command output safely with shell_exec base64 mode.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check why MCP_SHELL_ALLOW_UNSAFE=1 is still booting in secure mode with security.yaml.",
+    "should_trigger": true
+  },
+  {
+    "query": "Open https://example.com in Playwright and take a screenshot.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a MIDI drum pattern at 128 BPM in REAPER.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create an issue and pull request on a remote Git hosting repository via API.",
+    "should_trigger": false
+  },
+  {
+    "query": "Switch OBS Studio scenes and check recording status.",
+    "should_trigger": false
+  },
+  {
+    "query": "Turn off the living room lights in Home Assistant.",
+    "should_trigger": false
+  },
+  {
+    "query": "Read a note from my BookStack wiki and export it as markdown.",
+    "should_trigger": false
+  }
+]

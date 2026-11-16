@@ -1,0 +1,14 @@
+[
+  {"query": "Search my TriliumNext notes for anything tagged #self-hosted environment and show me the top snippets.", "should_trigger": true},
+  {"query": "Append today's standup summary to today's Trilium daily note using get_special_note.", "should_trigger": true},
+  {"query": "Create a Trilium frontend script note and wire it up to a render note.", "should_trigger": true},
+  {"query": "Move a cloned note in Trilium to a different parent folder without deleting its other clones.", "should_trigger": true},
+  {"query": "Restore a previous revision of my Trilium note because an edit removed a table.", "should_trigger": true},
+  {"query": "Configure triliumnext-mcp in HTTP multi-tenant mode with X-Trilium-Url and bearer gateway auth.", "should_trigger": true},
+  {"query": "Create a new book and chapter in BookStack for our hardware inventory.", "should_trigger": false},
+  {"query": "Pin a quick text memo with #todo in Memos.", "should_trigger": false},
+  {"query": "Save this webpage bookmark into a Karakeep list.", "should_trigger": false},
+  {"query": "Search my Paperless-ngx PDF archive for 2025 utility bills.", "should_trigger": false},
+  {"query": "Create an Outline Wiki document in our Engineering collection.", "should_trigger": false},
+  {"query": "Write a PromQL query to check Trilium container memory usage in Prometheus.", "should_trigger": false}
+]

@@ -1,0 +1,5 @@
+{
+  "input": "retrieve the content from https://example.com/article",
+  "reason": "The request involves fetching web content from a URL, which is the core capability of the Fetch Agent.",
+  "selectedAgent": "fetch-agent"
+}

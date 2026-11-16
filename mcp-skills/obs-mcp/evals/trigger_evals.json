@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Switch OBS Studio to the 'BRB' scene and mute Desktop Audio.",
+    "should_trigger": true
+  },
+  {
+    "query": "Clean up my OBS mic input with noise gate, RNNoise suppression, and compression.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check why OBS is dropping frames and whether the issue is GPU rendering, encoder overload, or upload congestion.",
+    "should_trigger": true
+  },
+  {
+    "query": "Start recording in OBS, check current record duration, and save the replay buffer clip.",
+    "should_trigger": true
+  },
+  {
+    "query": "Grab a screenshot of my OBS Program output and adjust the Webcam scene item crop and position.",
+    "should_trigger": true
+  },
+  {
+    "query": "Turn on OBS Studio Mode, preview the 'Starting Soon' scene, and cut to program with a 500ms Fade transition.",
+    "should_trigger": true
+  },
+  {
+    "query": "Take a screenshot of this webpage in headless Chromium and check console errors.",
+    "should_trigger": false
+  },
+  {
+    "query": "Play a YouTube video on my living room TV via Kodi / Home Assistant.",
+    "should_trigger": false
+  },
+  {
+    "query": "Find all MP4 video files in /data/recordings using filesystem search.",
+    "should_trigger": false
+  },
+  {
+    "query": "Download the transcript and video metadata for this YouTube URL.",
+    "should_trigger": false
+  },
+  {
+    "query": "Check Prometheus GPU exporter metrics for VRAM usage across Linux servers.",
+    "should_trigger": false
+  },
+  {
+    "query": "Move and resize the browser window on my remote Windows desktop.",
+    "should_trigger": false
+  }
+]

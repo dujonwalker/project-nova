@@ -1,0 +1,30 @@
+services:
+  vision-bridge-mcp:
+    build:
+      context: .
+    container_name: vision-bridge-mcp
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${SSE_PORT:-3024}:${SSE_PORT:-3024}"
+    environment:
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-streamable-http}
+      - SSE_HOST=${SSE_HOST:-0.0.0.0}
+      - SSE_PORT=${SSE_PORT:-3024}
+      - MCP_STATELESS_HTTP=${MCP_STATELESS_HTTP:-true}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.6-flash}
+      - VISION_BRIDGE_MAX_IMAGE_MB=${VISION_BRIDGE_MAX_IMAGE_MB:-20}
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:'+(process.env.SSE_PORT||3024)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

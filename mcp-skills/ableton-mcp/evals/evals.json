@@ -1,0 +1,35 @@
+{
+  "skill_name": "ableton-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a new MIDI track in Ableton Live at 124 BPM, load a bass synth from Ableton's browser, write a 4-bar bassline clip, and start playing it.",
+      "expected_output": "Calls get_session_info first, sets tempo via set_tempo(124), creates track with create_midi_track, browses via get_browser_tree / get_browser_items_at_path, loads instrument via load_instrument_or_effect, creates clip with create_clip(length=16.0 for 4 bars in 4/4), adds notes with add_notes_to_clip, and fires clip via fire_clip.",
+      "assertions": [
+        "Checks current session state with get_session_info before editing",
+        "Resolves instrument URI via get_browser_tree / get_browser_items_at_path instead of guessing a URI",
+        "Creates MIDI clip with beat length matching bars and adds notes via add_notes_to_clip"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Transpose the existing MIDI notes in track 0 slot 0 up by 5 semitones without duplicating the old notes.",
+      "expected_output": "Calls get_clip_notes(0, 0), increments each note's pitch by +5, calls clear_notes_from_clip(0, 0) because add_notes_to_clip is additive, and then calls add_notes_to_clip(0, 0, updated_notes).",
+      "assertions": [
+        "Reads existing notes with get_clip_notes",
+        "Clears clip with clear_notes_from_clip before re-adding modified notes",
+        "Re-writes edited notes with add_notes_to_clip"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Take the chorus clip on track 1 slot 2, place it at bar 9 in Arrangement View with a 'Chorus' locator, and show it in Arrangement View.",
+      "expected_output": "Calls get_session_info to verify 4/4 beats if needed, duplicates clip to beat 32.0 via duplicate_to_arrangement(track_index=1, clip_index=2, destination_time=32.0), adds cue marker via create_locator('Chorus', 32.0), and switches via switch_to_arrangement_view.",
+      "assertions": [
+        "Uses duplicate_to_arrangement with beat-based destination_time",
+        "Creates named cue marker via create_locator",
+        "Switches focus using switch_to_arrangement_view"
+      ]
+    }
+  ]
+}

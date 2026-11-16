@@ -1,0 +1,41 @@
+{
+  "skill_name": "reaper-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "name": "compose-midi-arrangement",
+      "prompt": "Set REAPER BPM to 128, check which VSTi instruments are on my tracks, and write a 4-bar chord progression and drum pattern on the appropriate tracks.",
+      "expected_output": "Calls get_track_instruments(), sets BPM with transport_set_bpm(bpm=128), and creates the progression and drum pattern using create_chord_progression / create_drum_pattern or compose_arrangement / midi_insert_notes_batch.",
+      "files": [],
+      "assertions": [
+        "Calls get_track_instruments() before picking target tracks",
+        "Calls transport_set_bpm(bpm=128)",
+        "Uses REAPER MIDI/pattern composition tools directly without writing standalone MIDI files or scripts"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "destructive-wipe-confirmation",
+      "prompt": "Clear all existing MIDI and re-mix the whole project from scratch with a clean slate.",
+      "expected_output": "Describes the destructive changes (wipe_all_midi and engine_mix with clean=True) and asks for user confirmation before wiping or stripping existing mix FX.",
+      "files": [],
+      "assertions": [
+        "Identifies wipe_all_midi() as the proper tool for clearing MIDI instead of manual item/note deletion loops",
+        "Asks for user confirmation before running destructive operations (wipe_all_midi, engine_mix with clean=True) on an existing project",
+        "Mentions project_undo / project_undo_group as recovery mechanism if needed"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "export-and-loudness-qc",
+      "prompt": "Bounce the project master to WAV and check if loudness and clipping meet streaming targets.",
+      "expected_output": "Exports audio via project_export_audio(path=..., format='wav') and runs analyze_loudness and analyze_clipping on the exported file.",
+      "files": [],
+      "assertions": [
+        "Calls project_export_audio with format='wav'",
+        "Calls analyze_loudness(wav_path=..., reference='streaming') and analyze_clipping",
+        "Notes [analysis] extra requirement if the analysis tools are unavailable"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+services:
+  ableton-mcp:
+    build:
+      context: .
+    container_name: ableton-mcp
+    restart: unless-stopped
+    ports:
+      - "${SSE_PORT:-3013}:${SSE_PORT:-3013}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-streamable-http}
+      - SSE_HOST=${SSE_HOST:-0.0.0.0}
+      - SSE_PORT=${SSE_PORT:-3013}
+      - MCP_STATELESS_HTTP=${MCP_STATELESS_HTTP:-true}
+      - MCP_JSON_RESPONSE=${MCP_JSON_RESPONSE:-false}
+      - ABLETON_MCP_DISABLE_TELEMETRY=${ABLETON_MCP_DISABLE_TELEMETRY:-1}
+      - ABLETON_HOST=${ABLETON_HOST:-}
+      - ABLETON_IP=${ABLETON_IP:-}
+      - ABLETON_PORT=${ABLETON_PORT:-9877}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${SSE_PORT:-3013}/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

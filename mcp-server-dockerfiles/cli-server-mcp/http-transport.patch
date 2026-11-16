@@ -1,0 +1,245 @@
+--- a/main.go	2026-11-15 21:29:50.356060106 +0000
++++ b/main.go	2026-11-15 21:30:08.885251235 +0000
+@@ -1,8 +1,17 @@
+ package main
+
+ import (
++	"context"
++	"encoding/json"
++	"errors"
+	"fmt"
++	"net"
++	"net/http"
+	"os"
++	"os/signal"
++	"strings"
++	"syscall"
++	"time"
+
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
+@@ -82,13 +91,101 @@
+		return fmt.Errorf("register tools: %w", err)
+	}
+
+-	log.Info().Msg("MCP server initialized, serving on stdio")
++	transport := strings.ToLower(strings.TrimSpace(getEnv("MCP_TRANSPORT", "stdio")))
++	switch transport {
++	case "stdio", "":
++		log.Info().Msg("MCP server initialized, serving on stdio")
+
+-	if err := server.ServeStdio(s); err != nil {
+-		return fmt.Errorf("server error: %w", err)
++		if err := server.ServeStdio(s); err != nil {
++			return fmt.Errorf("server error: %w", err)
++		}
++		return nil
++
++	case "streamable-http", "http":
++		host := getEnv("SSE_HOST", "0.0.0.0")
++		port := getEnv("SSE_PORT", "3009")
++		stateless := getBoolEnv("MCP_STATELESS_HTTP", true)
++		addr := net.JoinHostPort(host, port)
++
++		httpSrv := &http.Server{
++			Addr:              addr,
++			Handler:           buildHTTPHandler(s, cfg, stateless),
++			ReadHeaderTimeout: 10 * time.Second,
++		}
++
++		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
++		defer stop()
++
++		errCh := make(chan error, 1)
++		go func() {
++			log.Info().
++				Str("addr", addr).
++				Bool("stateless", stateless).
++				Msg("MCP server initialized, serving Streamable HTTP")
++			if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
++				errCh <- err
++			}
++			close(errCh)
++		}()
++
++		select {
++		case err := <-errCh:
++			if err != nil {
++				return fmt.Errorf("http server error: %w", err)
++			}
++			return nil
++		case <-ctx.Done():
++			shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
++			defer cancel()
++			if err := httpSrv.Shutdown(shutdownCtx); err != nil {
++				return fmt.Errorf("http server shutdown: %w", err)
++			}
++			return <-errCh
++		}
++
++	default:
++		return fmt.Errorf("unsupported MCP_TRANSPORT %q (expected stdio or streamable-http)", transport)
+	}
++}
++
++func buildHTTPHandler(s *server.MCPServer, cfg *Config, stateless bool) http.Handler {
++	opts := []server.StreamableHTTPOption{
++		server.WithEndpointPath("/mcp"),
++	}
++	if stateless {
++		opts = append(opts, server.WithStateLess(true))
++	} else {
++		opts = append(opts, server.WithStateful(true))
++	}
++
++	streamable := server.NewStreamableHTTPServer(s, opts...)
++	mux := http.NewServeMux()
++
++	healthHandler := func(w http.ResponseWriter, r *http.Request) {
++		if r.Method != http.MethodGet && r.Method != http.MethodHead {
++			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
++			return
++		}
++		w.Header().Set("Content-Type", "application/json")
++		w.WriteHeader(http.StatusOK)
++		if r.Method == http.MethodHead {
++			return
++		}
++		_ = json.NewEncoder(w).Encode(map[string]any{
++			"status":           "ok",
++			"transport":        "streamable-http",
++			"server":           cfg.Server.Name,
++			"version":          cfg.Server.Version,
++			"security_enabled": cfg.Security.Enabled,
++			"unsafe":           !cfg.Security.Enabled,
++		})
++	}
++
++	mux.HandleFunc("/health", healthHandler)
++	mux.HandleFunc("/healthz", healthHandler)
++	mux.Handle("/mcp", streamable)
+
+-	return nil
++	return mux
+ }
+
+ func registerTools(s *server.MCPServer, cfg *Config, executor *CommandExecutor, log zerolog.Logger) error {
+--- a/main_test.go	2026-11-15 21:29:50.523400913 +0000
++++ b/main_test.go	2026-11-15 21:30:10.627116903 +0000
+@@ -1,7 +1,11 @@
+ package main
+
+ import (
++	"bytes"
++	"encoding/json"
+	"fmt"
++	"net/http"
++	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"testing"
+@@ -125,3 +129,104 @@
+		}
+	})
+ }
++
++func TestHTTPHandler(t *testing.T) {
++	logger := zerolog.Nop()
++	wsDir := t.TempDir()
++	cfg := &Config{
++		Server: ServerConfig{Name: "mcp-shell-test", Version: "1.1.1"},
++		Security: SecurityConfig{
++			Enabled:          false,
++			MaxExecutionTime: 10 * time.Second,
++			MaxOutputSize:    65536,
++			WorkingDirectory: wsDir,
++		},
++	}
++
++	executor := newCommandExecutor(cfg.Security, logger)
++	s := server.NewMCPServer(cfg.Server.Name, cfg.Server.Version, server.WithToolCapabilities(false))
++	require.NoError(t, registerTools(s, cfg, executor, logger))
++
++	ts := httptest.NewServer(buildHTTPHandler(s, cfg, true))
++	defer ts.Close()
++
++	for _, path := range []string{"/health", "/healthz"} {
++		resp, err := http.Get(ts.URL + path)
++		require.NoError(t, err)
++		var body map[string]any
++		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
++		require.NoError(t, resp.Body.Close())
++		assert.Equal(t, http.StatusOK, resp.StatusCode)
++		assert.Equal(t, "ok", body["status"])
++		assert.Equal(t, true, body["unsafe"])
++		assert.Equal(t, false, body["security_enabled"])
++	}
++
++	postMCP := func(payload map[string]any) (int, map[string]any) {
++		raw, err := json.Marshal(payload)
++		require.NoError(t, err)
++		req, err := http.NewRequest(http.MethodPost, ts.URL+"/mcp", bytes.NewReader(raw))
++		require.NoError(t, err)
++		req.Header.Set("Content-Type", "application/json")
++		req.Header.Set("Accept", "application/json, text/event-stream")
++		resp, err := ts.Client().Do(req)
++		require.NoError(t, err)
++		defer resp.Body.Close()
++
++		if resp.StatusCode == http.StatusAccepted {
++			return resp.StatusCode, nil
++		}
++		var out map[string]any
++		require.NoError(t, json.NewDecoder(resp.Body).Decode(&out))
++		return resp.StatusCode, out
++	}
++
++	status, initResp := postMCP(map[string]any{
++		"jsonrpc": "2.0",
++		"id":      1,
++		"method":  "initialize",
++		"params": map[string]any{
++			"protocolVersion": "2025-03-26",
++			"capabilities":    map[string]any{},
++			"clientInfo":      map[string]any{"name": "test-client", "version": "1.0.0"},
++		},
++	})
++	assert.Equal(t, http.StatusOK, status)
++	assert.Contains(t, initResp, "result")
++
++	status, _ = postMCP(map[string]any{
++		"jsonrpc": "2.0",
++		"method":  "notifications/initialized",
++	})
++	assert.Contains(t, []int{http.StatusOK, http.StatusAccepted}, status)
++
++	status, listResp := postMCP(map[string]any{
++		"jsonrpc": "2.0",
++		"id":      2,
++		"method":  "tools/list",
++		"params":  map[string]any{},
++	})
++	assert.Equal(t, http.StatusOK, status)
++	toolsResult := listResp["result"].(map[string]any)
++	tools := toolsResult["tools"].([]any)
++	require.Len(t, tools, 1)
++	assert.Equal(t, "shell_exec", tools[0].(map[string]any)["name"])
++
++	status, callResp := postMCP(map[string]any{
++		"jsonrpc": "2.0",
++		"id":      3,
++		"method":  "tools/call",
++		"params": map[string]any{
++			"name":      "shell_exec",
++			"arguments": map[string]any{"command": "echo hello-http && pwd"},
++		},
++	})
++	assert.Equal(t, http.StatusOK, status)
++	content := callResp["result"].(map[string]any)["content"].([]any)
++	require.NotEmpty(t, content)
++	var execOut map[string]any
++	require.NoError(t, json.Unmarshal([]byte(content[0].(map[string]any)["text"].(string)), &execOut))
++	assert.Equal(t, float64(0), execOut["exit_code"])
++	assert.Contains(t, execOut["stdout"], "hello-http")
++	assert.Contains(t, execOut["stdout"], wsDir)
++}

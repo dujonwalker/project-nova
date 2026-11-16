@@ -1,0 +1,28 @@
+services:
+  langfuse-mcp:
+    image: ghcr.io/avivsinai/langfuse-mcp:0.14.0
+    container_name: langfuse-mcp
+    restart: unless-stopped
+    command: ["--dump-dir", "/tmp/langfuse_mcp_dumps"]
+    ports:
+      - "${SSE_PORT:-3006}:${SSE_PORT:-3006}"
+    environment:
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-http://127.0.0.1:3000}
+      - LANGFUSE_MCP_TRANSPORT=streamable-http
+      - LANGFUSE_MCP_BIND_HOST=0.0.0.0
+      - LANGFUSE_MCP_PORT=${SSE_PORT:-3006}
+      - LANGFUSE_LOG_TO_CONSOLE=true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, socket; s=socket.create_connection(('127.0.0.1', int(os.environ.get('LANGFUSE_MCP_PORT', '3006'))), 3); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

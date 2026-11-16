@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Open our staging web app, fill out the signup wizard, click submit, and check browser console errors and failed XHR requests.",
+    "should_trigger": true
+  },
+  {
+    "query": "Navigate to this SPA dashboard in a headless browser, take an accessibility snapshot, select an option from the filter dropdown, and screenshot the chart.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you verify whether clicking 'Export CSV' triggers a 500 network response and capture the response body in Playwright MCP?",
+    "should_trigger": true
+  },
+  {
+    "query": "Test responsive mobile layout for our checkout modal at 390x844 and check keyboard navigation using Playwright browser tools.",
+    "should_trigger": true
+  },
+  {
+    "query": "How should I configure playwright-mcp in Docker with --port, --host, --allowed-hosts, and --caps=pdf,vision?",
+    "should_trigger": true
+  },
+  {
+    "query": "Mock /api/billing/status to return HTTP 503 using Playwright MCP network routing and verify the error banner appears.",
+    "should_trigger": true
+  },
+  {
+    "query": "Fetch this blog post URL and extract its clean article text as Markdown.",
+    "should_trigger": false
+  },
+  {
+    "query": "Batch download and convert these 12 documentation URLs into readable Markdown summaries.",
+    "should_trigger": false
+  },
+  {
+    "query": "Run pytest on our local FastAPI backend and fix the failing unit test in tests/test_auth.py.",
+    "should_trigger": false
+  },
+  {
+    "query": "Inspect the already-open signed-in Chrome tab on my remote desktop over raw Chrome DevTools WebSocket scripts.",
+    "should_trigger": false
+  },
+  {
+    "query": "Convert this local HTML report to a merged PDF using Stirling PDF.",
+    "should_trigger": false
+  },
+  {
+    "query": "Query our Langfuse traces and latency metrics for the last 24 hours.",
+    "should_trigger": false
+  }
+]

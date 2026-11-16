@@ -1,0 +1,36 @@
+{
+  "skill_name": "fetcher-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Fetch https://example.com/docs/guide as clean Markdown, and explain what options to adjust if an SPA page returns an empty shell or Readability drops the sidebar links.",
+      "expected_output": "Calls fetch_url(url='https://example.com/docs/guide'), explains switching waitUntil to 'networkidle' (or waitForNavigation=true for redirects) for JS-hydrated SPAs, and setting extractContent=false (or returnText=true for plain innerText) if Readability omits sidebars or tables.",
+      "files": [],
+      "assertions": [
+        "Uses fetch_url with default Markdown/Readability mode",
+        "Recommends waitUntil='networkidle' or waitForNavigation=true for dynamic SPAs",
+        "Explains extractContent=false vs returnText=true behavior accurately"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Fetch three changelog URLs at once and extract up to 8000 characters from each page, making sure not to enable browser debug windows on the server.",
+      "expected_output": "Uses fetch_urls(urls=[...], maxLength=8000) to fetch all three URLs concurrently in one browser context, parses [webpage N begin]/[webpage N end] sections, and keeps debug omitted/false.",
+      "files": [],
+      "assertions": [
+        "Uses fetch_urls with the urls array and maxLength=8000",
+        "Avoids passing debug=true on a headless server"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Deploy fetcher-mcp over Streamable HTTP on port 3000 and diagnose why direct POSTs to /mcp return HTTP 400 'Bad Request: No valid session ID provided'.",
+      "expected_output": "Explains running with --transport=http --host=0.0.0.0 --port=3000 and notes that /mcp uses stateful StreamableHTTPServerTransport requiring an initial 'initialize' request followed by echoing the returned mcp-session-id header.",
+      "files": [],
+      "assertions": [
+        "Identifies CLI flags (--transport=http --host=0.0.0.0 --port=3000) and /mcp, /sse, / endpoints",
+        "Explains stateful mcp-session-id requirement for HTTP 400 diagnosis"
+      ]
+    }
+  ]
+}
